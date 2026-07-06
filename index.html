@@ -3,17 +3,18 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>GETJOGO | Buy Used Digital Games for Less</title>
-  <meta name="description" content="GETJOGO is the marketplace for used digital games. Verified licenses, instant downloads, and prices up to 70% below retail.">
+  <title>GETJOGO | Verified Pre-Owned Digital Games for Less</title>
+  <meta name="description" content="GETJOGO is the marketplace for verified pre-owned digital game licenses. Real games, real savings, instant delivery. Save up to 60% on PC, PlayStation, Xbox and Switch.">
   <meta name="theme-color" content="#0C0F0D">
   <link rel="icon" type="image/svg+xml" href="assets/Get-Jogo.svg">
   <link rel="apple-touch-icon" href="assets/GJ-logo.png">
-  <meta property="og:title" content="GETJOGO | Buy Used Digital Games for Less">
-  <meta property="og:description" content="Verified licenses, instant downloads, and prices up to 70% below retail.">
+  <meta property="og:title" content="GETJOGO | Verified Pre-Owned Digital Games for Less">
+  <meta property="og:description" content="Verified pre-owned digital licenses. Instant delivery. Save up to 60% on PC, PlayStation, Xbox and Switch.">
   <meta property="og:type" content="website">
   <meta property="og:image" content="assets/GJ-logo.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="preconnect" href="https://cdn.cloudflare.steamstatic.com">
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/styles.css">
   <script type="application/ld+json">
@@ -21,7 +22,7 @@
     "@context": "https://schema.org",
     "@type": "WebSite",
     "name": "GETJOGO",
-    "description": "Marketplace for used digital video games with verified license transfers."
+    "description": "Marketplace for verified pre-owned digital video game licenses."
   }
   </script>
 </head>
@@ -44,11 +45,11 @@
           <span class="visually-hidden">Menu</span>
         </button>
         <ul class="nav-menu" id="nav-menu">
-          <li><a href="#featured">Browse Games</a></li>
-          <li><a href="#deals">Deals</a></li>
+          <li><a href="#trending">Browse Games</a></li>
+          <li><a href="#under-20">Deals</a></li>
           <li><a href="#how-it-works">How It Works</a></li>
           <li><a href="#support">Support</a></li>
-          <li class="nav-cta-item"><a href="#featured" class="btn btn-primary btn-sm">Start Browsing</a></li>
+          <li class="nav-cta-item"><a href="#trending" class="btn btn-primary btn-sm">Start Browsing</a></li>
         </ul>
       </nav>
     </div>
@@ -60,11 +61,11 @@
       <div class="hero-glow" aria-hidden="true"></div>
       <div class="container hero-inner">
         <div class="hero-copy">
-          <p class="eyebrow">The used digital game marketplace</p>
-          <h1 id="hero-title">Great games.<br><span class="accent-text">Second owner prices.</span></h1>
-          <p class="hero-sub">Buy pre-owned digital licenses from verified sellers and download instantly. The same games you want, up to 70% below retail.</p>
+          <p class="eyebrow">Verified pre-owned digital licenses</p>
+          <h1 id="hero-title">Trusted games.<br><span class="accent-text">Second owner prices.</span></h1>
+          <p class="hero-sub">Every license on GETJOGO is validated against platform records before it goes live. Buy real games from real owners and download instantly, up to 60% below retail.</p>
           <div class="hero-actions">
-            <a href="#featured" class="btn btn-primary btn-lg">Browse Games</a>
+            <a href="#trending" class="btn btn-primary btn-lg">Browse Games</a>
             <a href="#support" class="btn btn-ghost btn-lg">Sell a Game</a>
           </div>
           <div class="hero-proof">
@@ -73,101 +74,213 @@
             <div class="proof-stat"><strong>&lt;60s</strong><span>to first download</span></div>
           </div>
         </div>
-        <div class="hero-visual" aria-hidden="true">
-          <div class="hero-cards" id="hero-cards"></div>
+        <div class="hero-visual">
+          <div class="spotlight" id="spotlight"></div>
         </div>
       </div>
     </section>
 
-    <!-- ============ FEATURED GAMES ============ -->
-    <section class="section section-light" id="featured" aria-labelledby="featured-title">
+    <!-- ============ CATALOG SHELVES ============ -->
+    <section class="shelf" id="trending" aria-labelledby="trending-title">
+      <div class="container shelf-head">
+        <div>
+          <p class="eyebrow">Hot right now</p>
+          <h2 id="trending-title">Trending Deals</h2>
+        </div>
+        <div class="shelf-nav">
+          <button class="shelf-btn" data-dir="-1" data-target="shelf-trending" aria-label="Scroll Trending Deals back"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg></button>
+          <button class="shelf-btn" data-dir="1" data-target="shelf-trending" aria-label="Scroll Trending Deals forward"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></button>
+        </div>
+      </div>
+      <div class="shelf-scroll"><div class="container shelf-track" id="shelf-trending"></div></div>
+    </section>
+
+    <section class="shelf" id="new-releases" aria-labelledby="new-title">
+      <div class="container shelf-head">
+        <div>
+          <p class="eyebrow">Just launched</p>
+          <h2 id="new-title">New Releases</h2>
+        </div>
+        <div class="shelf-nav">
+          <button class="shelf-btn" data-dir="-1" data-target="shelf-new" aria-label="Scroll New Releases back"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg></button>
+          <button class="shelf-btn" data-dir="1" data-target="shelf-new" aria-label="Scroll New Releases forward"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></button>
+        </div>
+      </div>
+      <div class="shelf-scroll"><div class="container shelf-track" id="shelf-new"></div></div>
+    </section>
+
+    <!-- ============ UNDER $20 (light) ============ -->
+    <section class="section section-light" id="under-20" aria-labelledby="under20-title">
       <div class="container">
         <div class="section-head">
           <div>
-            <p class="eyebrow eyebrow-dark">Featured games</p>
-            <h2 id="featured-title">Fresh on the marketplace</h2>
+            <p class="eyebrow eyebrow-dark">Budget beaters</p>
+            <h2 id="under20-title">Games Under $20</h2>
           </div>
-          <a href="#deals" class="btn btn-outline">View all deals</a>
+          <p class="section-note">Verified licenses, all under a twenty.</p>
         </div>
-        <div class="game-grid" id="featured-grid"></div>
+        <div class="game-grid" id="grid-under20"></div>
       </div>
     </section>
 
+    <section class="shelf" id="top-rated" aria-labelledby="top-title">
+      <div class="container shelf-head">
+        <div>
+          <p class="eyebrow">Community favorites</p>
+          <h2 id="top-title">Top Rated</h2>
+        </div>
+        <div class="shelf-nav">
+          <button class="shelf-btn" data-dir="-1" data-target="shelf-top" aria-label="Scroll Top Rated back"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg></button>
+          <button class="shelf-btn" data-dir="1" data-target="shelf-top" aria-label="Scroll Top Rated forward"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></button>
+        </div>
+      </div>
+      <div class="shelf-scroll"><div class="container shelf-track" id="shelf-top"></div></div>
+    </section>
+
+    <section class="shelf" id="best-sellers" aria-labelledby="best-title">
+      <div class="container shelf-head">
+        <div>
+          <p class="eyebrow">Most bought this month</p>
+          <h2 id="best-title">Best Sellers</h2>
+        </div>
+        <div class="shelf-nav">
+          <button class="shelf-btn" data-dir="-1" data-target="shelf-best" aria-label="Scroll Best Sellers back"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg></button>
+          <button class="shelf-btn" data-dir="1" data-target="shelf-best" aria-label="Scroll Best Sellers forward"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></button>
+        </div>
+      </div>
+      <div class="shelf-scroll"><div class="container shelf-track" id="shelf-best"></div></div>
+    </section>
+
+    <section class="shelf" id="aaa-titles" aria-labelledby="aaa-title">
+      <div class="container shelf-head">
+        <div>
+          <p class="eyebrow">Blockbusters</p>
+          <h2 id="aaa-title">AAA Titles</h2>
+        </div>
+        <div class="shelf-nav">
+          <button class="shelf-btn" data-dir="-1" data-target="shelf-aaa" aria-label="Scroll AAA Titles back"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg></button>
+          <button class="shelf-btn" data-dir="1" data-target="shelf-aaa" aria-label="Scroll AAA Titles forward"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></button>
+        </div>
+      </div>
+      <div class="shelf-scroll"><div class="container shelf-track" id="shelf-aaa"></div></div>
+    </section>
+
+    <section class="shelf" id="indie-gems" aria-labelledby="indie-title">
+      <div class="container shelf-head">
+        <div>
+          <p class="eyebrow">Small teams, big games</p>
+          <h2 id="indie-title">Indie Gems</h2>
+        </div>
+        <div class="shelf-nav">
+          <button class="shelf-btn" data-dir="-1" data-target="shelf-indie" aria-label="Scroll Indie Gems back"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg></button>
+          <button class="shelf-btn" data-dir="1" data-target="shelf-indie" aria-label="Scroll Indie Gems forward"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></button>
+        </div>
+      </div>
+      <div class="shelf-scroll"><div class="container shelf-track" id="shelf-indie"></div></div>
+    </section>
+
+    <section class="shelf" id="recently-added" aria-labelledby="recent-title">
+      <div class="container shelf-head">
+        <div>
+          <p class="eyebrow">Fresh listings</p>
+          <h2 id="recent-title">Recently Added</h2>
+        </div>
+        <div class="shelf-nav">
+          <button class="shelf-btn" data-dir="-1" data-target="shelf-recent" aria-label="Scroll Recently Added back"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg></button>
+          <button class="shelf-btn" data-dir="1" data-target="shelf-recent" aria-label="Scroll Recently Added forward"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></button>
+        </div>
+      </div>
+      <div class="shelf-scroll"><div class="container shelf-track" id="shelf-recent"></div></div>
+    </section>
+
     <!-- ============ HOW IT WORKS ============ -->
-    <section class="section" id="how-it-works" aria-labelledby="how-title">
+    <section class="section section-light" id="how-it-works" aria-labelledby="how-title">
       <div class="container">
         <div class="section-head section-head-center">
-          <p class="eyebrow">How it works</p>
-          <h2 id="how-title">From browsing to playing in three steps</h2>
+          <p class="eyebrow eyebrow-dark">How it works</p>
+          <h2 id="how-title">Every license is checked before you ever see it</h2>
         </div>
-        <ol class="steps">
-          <li class="step-card">
+        <ol class="steps steps-4">
+          <li class="step-card step-card-light">
             <span class="step-num" aria-hidden="true">01</span>
-            <svg class="step-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
-            <h3>Browse used games</h3>
-            <p>Search thousands of pre-owned digital licenses across PC, PlayStation, Xbox and Switch. Every listing shows its full ownership history.</p>
+            <svg class="step-icon step-icon-light" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12"/><path d="m17 8-5-5-5 5"/><path d="M5 21h14"/></svg>
+            <h3>Sellers submit licenses</h3>
+            <p>Owners list the digital games they no longer play, with full account and purchase history attached.</p>
           </li>
-          <li class="step-card">
+          <li class="step-card step-card-light">
             <span class="step-num" aria-hidden="true">02</span>
-            <svg class="step-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 10h18"/></svg>
-            <h3>Buy securely</h3>
-            <p>Pay with card, PayPal or wallet balance. Funds stay in escrow until the license transfer is confirmed on your account.</p>
+            <svg class="step-icon step-icon-light" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 12 2 2 4-4"/></svg>
+            <h3>GETJOGO validates</h3>
+            <p>We verify every license against platform records before it lists. Duplicates and revoked keys never go live.</p>
           </li>
-          <li class="step-card">
+          <li class="step-card step-card-light">
             <span class="step-num" aria-hidden="true">03</span>
-            <svg class="step-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12"/><path d="m7 10 5 5 5-5"/><path d="M5 21h14"/></svg>
-            <h3>Download instantly</h3>
-            <p>The license lands in your library the moment the transfer clears. Start the download right away, no waiting on shipping.</p>
+            <svg class="step-icon step-icon-light" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 10h18"/></svg>
+            <h3>You buy securely</h3>
+            <p>Pay the discounted price with card, PayPal or wallet balance. Your money sits in escrow, not with the seller.</p>
+          </li>
+          <li class="step-card step-card-light">
+            <span class="step-num" aria-hidden="true">04</span>
+            <svg class="step-icon step-icon-light" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13 2 3 14h7l-1 8 10-12h-7l1-8z"/></svg>
+            <h3>Instant transfer</h3>
+            <p>The license moves to your account the moment the transfer clears, usually in under a minute. Download and play.</p>
           </li>
         </ol>
       </div>
     </section>
 
-    <!-- ============ DEALS ============ -->
-    <section class="section section-deals" id="deals" aria-labelledby="deals-title">
+    <!-- ============ TRUST ============ -->
+    <section class="section" id="trust" aria-labelledby="trust-title">
       <div class="container">
-        <div class="section-head">
-          <div>
-            <p class="eyebrow">Deals and popular downloads</p>
-            <h2 id="deals-title">Limited time price drops</h2>
-          </div>
-          <p class="deals-timer" aria-live="polite">Weekly deals refresh in <strong id="deals-countdown">00:00:00</strong></p>
+        <div class="section-head section-head-center">
+          <p class="eyebrow">Why GETJOGO</p>
+          <h2 id="trust-title">Built so second hand never feels second rate</h2>
         </div>
-        <div class="game-grid deal-grid" id="deals-grid"></div>
+        <div class="trust-grid trust-grid-dark">
+          <article class="trust-card trust-card-dark">
+            <svg class="trust-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 12 2 2 4-4"/></svg>
+            <h3>100% verified licenses</h3>
+            <p>Every listing is checked against platform records before it goes live. No duplicates, no revoked keys.</p>
+          </article>
+          <article class="trust-card trust-card-dark">
+            <svg class="trust-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="11" width="18" height="10" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+            <h3>Secure payments</h3>
+            <p>Escrow holds every payment with 256-bit encryption. Your money moves only when your game does.</p>
+          </article>
+          <article class="trust-card trust-card-dark">
+            <svg class="trust-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13 2 3 14h7l-1 8 10-12h-7l1-8z"/></svg>
+            <h3>Instant digital delivery</h3>
+            <p>Transfers complete in under a minute on average. Your library updates the moment the seller confirms.</p>
+          </article>
+          <article class="trust-card trust-card-dark">
+            <svg class="trust-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/></svg>
+            <h3>Buyer protection</h3>
+            <p>Every order is covered from checkout to activation. If anything goes wrong, we make it right.</p>
+          </article>
+          <article class="trust-card trust-card-dark">
+            <svg class="trust-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 9-9"/><path d="M3 3v6h6"/><path d="M12 7v5l3 3"/></svg>
+            <h3>Refund policy</h3>
+            <p>If a license fails to activate, you get a full refund within 48 hours. No forms, no fine print.</p>
+          </article>
+          <article class="trust-card trust-card-dark">
+            <svg class="trust-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+            <h3>24/7 customer support</h3>
+            <p>Real humans on chat and email around the clock. Median first response time is under four minutes.</p>
+          </article>
+        </div>
       </div>
     </section>
 
-    <!-- ============ TRUST ============ -->
-    <section class="section section-light" id="trust" aria-labelledby="trust-title">
+    <!-- ============ CUSTOMER REVIEWS ============ -->
+    <section class="section section-light" id="reviews" aria-labelledby="reviews-title">
       <div class="container">
         <div class="section-head section-head-center">
-          <p class="eyebrow eyebrow-dark">Why GETJOGO</p>
-          <h2 id="trust-title">Built so second hand never feels second rate</h2>
+          <p class="eyebrow eyebrow-dark">Customer reviews</p>
+          <h2 id="reviews-title">48,000 transfers and counting</h2>
         </div>
-        <div class="trust-grid">
-          <article class="trust-card">
-            <svg class="trust-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="11" width="18" height="10" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-            <h3>Secure payments</h3>
-            <p>Every purchase runs through escrow with 256-bit encryption. Your money moves only when your game does.</p>
-          </article>
-          <article class="trust-card">
-            <svg class="trust-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 12 2 2 4-4"/></svg>
-            <h3>Verified digital licenses</h3>
-            <p>Each listing is checked against platform records before it goes live. No duplicates, no revoked keys, no surprises.</p>
-          </article>
-          <article class="trust-card">
-            <svg class="trust-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13 2 3 14h7l-1 8 10-12h-7l1-8z"/></svg>
-            <h3>Instant downloads</h3>
-            <p>Transfers complete in under a minute on average. Your library updates the moment the seller confirms.</p>
-          </article>
-          <article class="trust-card">
-            <svg class="trust-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 9-9"/><path d="M3 3v6h6"/><path d="M12 7v5l3 3"/></svg>
-            <h3>Refund protection</h3>
-            <p>If a license fails to activate, you get a full refund within 48 hours. No forms, no fine print, no hassle.</p>
-          </article>
-        </div>
+        <div class="reviews-grid" id="reviews-grid"></div>
         <div class="trust-cta">
-          <a href="#featured" class="btn btn-primary btn-lg">Start Browsing</a>
+          <a href="#trending" class="btn btn-primary btn-lg">Start Browsing</a>
         </div>
       </div>
     </section>
@@ -183,15 +296,15 @@
               <use href="#gj-logo"></use>
             </svg>
           </a>
-          <p>The marketplace for used digital games. Verified licenses, instant downloads, honest prices.</p>
+          <p>The marketplace for verified pre-owned digital games. Real licenses, instant delivery, honest prices.</p>
         </div>
         <nav class="footer-col" aria-label="Quick links">
           <h3>Quick links</h3>
           <ul>
-            <li><a href="#featured">Browse Games</a></li>
-            <li><a href="#deals">Deals</a></li>
+            <li><a href="#trending">Trending Deals</a></li>
+            <li><a href="#new-releases">New Releases</a></li>
+            <li><a href="#under-20">Games Under $20</a></li>
             <li><a href="#how-it-works">How It Works</a></li>
-            <li><a href="#trust">Why GETJOGO</a></li>
           </ul>
         </nav>
         <nav class="footer-col" aria-label="Support">
@@ -230,7 +343,7 @@
         </div>
       </div>
       <div class="footer-bottom">
-        <p>&copy; 2026 GETJOGO. All rights reserved. Prototype for demonstration purposes.</p>
+        <p>&copy; 2026 GETJOGO. All rights reserved. Prototype for demonstration purposes. Game titles and artwork belong to their respective publishers.</p>
         <ul class="footer-legal">
           <li><a href="#support">Terms</a></li>
           <li><a href="#support">Privacy</a></li>

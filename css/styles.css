@@ -140,13 +140,6 @@ h3 { font-size: var(--step-1); }
 }
 .btn-ghost:hover { border-color: var(--accent-bright); color: var(--accent-bright); }
 
-.btn-outline {
-  background: transparent;
-  color: var(--light-fg);
-  border-color: var(--light-fg);
-}
-.btn-outline:hover { background: var(--light-fg); color: #fff; }
-
 .btn-sm { min-height: 44px; padding: 10px 20px; font-size: 0.9375rem; }
 .btn-lg { min-height: 56px; padding: 14px 36px; font-size: 1.0625rem; }
 
@@ -218,7 +211,7 @@ h3 { font-size: var(--step-1); }
 .hero {
   position: relative;
   overflow: hidden;
-  padding-block: clamp(64px, 9vw, 140px);
+  padding-block: clamp(56px, 7vw, 112px);
 }
 .hero-glow {
   position: absolute;
@@ -247,7 +240,7 @@ h3 { font-size: var(--step-1); }
 .accent-text { color: var(--accent-bright); }
 
 .hero-sub {
-  max-width: 46ch;
+  max-width: 48ch;
   color: var(--muted);
   font-size: var(--step-1);
   margin-top: var(--space-4);
@@ -274,53 +267,72 @@ h3 { font-size: var(--step-1); }
 }
 .proof-stat span { font-size: 0.875rem; color: var(--muted); }
 
-/* hero visual: fanned mini cards */
+/* hero spotlight */
 .hero-visual { display: none; }
-.hero-cards {
-  display: grid;
-  gap: var(--space-3);
-}
-.hero-card {
-  display: flex;
-  align-items: center;
-  gap: var(--space-3);
-  background: rgba(21, 26, 22, 0.85);
+.spot-card {
+  background: rgba(21, 26, 22, 0.88);
   border: 1px solid var(--border);
-  border-radius: var(--radius-md);
-  padding: var(--space-3);
-  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.35);
+  border-radius: var(--radius-lg);
+  padding: var(--space-4);
+  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.45);
 }
-.hero-card:nth-child(2) { transform: translateX(var(--space-6)); }
-.hero-card:nth-child(3) { transform: translateX(var(--space-3)); }
-.hero-card .mini-cover {
-  width: 64px;
-  height: 84px;
-  flex-shrink: 0;
-  border-radius: var(--radius-sm);
+.spot-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: "Space Grotesk", sans-serif;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--accent-bright);
+  margin-bottom: var(--space-3);
+}
+.spot-label svg { width: 14px; height: 14px; }
+.spot-inner {
+  display: grid;
+  grid-template-columns: 168px 1fr;
+  gap: var(--space-4);
+  align-items: start;
+}
+.spot-inner img {
+  width: 100%;
+  height: auto;
+  border-radius: var(--radius-md);
+  aspect-ratio: 2 / 3;
+  object-fit: cover;
+}
+.spot-meta { display: grid; gap: var(--space-2); justify-items: start; }
+.spot-title { font-size: var(--step-2); }
+.spot-sub {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--muted);
+  font-size: 0.875rem;
+}
+.spot-sub svg { width: 14px; height: 14px; color: var(--accent-bright); }
+.spot-desc { color: var(--muted); font-size: 0.9375rem; }
+.spot-price {
   display: flex;
   align-items: center;
-  justify-content: center;
-  font-family: "Space Grotesk", sans-serif;
-  font-weight: 700;
-  font-size: 1.25rem;
-  color: rgba(255, 255, 255, 0.92);
-}
-.hero-card-meta { display: grid; gap: 2px; min-width: 0; }
-.hero-card-meta .hc-title {
-  font-family: "Space Grotesk", sans-serif;
-  font-weight: 600;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-.hero-card-meta .hc-platform { font-size: 0.8125rem; color: var(--muted); }
-.hero-card-meta .hc-price {
-  font-size: 0.9375rem;
-  font-weight: 600;
-  color: var(--accent-bright);
+  gap: var(--space-2);
+  margin-top: var(--space-1);
   font-variant-numeric: tabular-nums;
 }
-.hero-card-meta .hc-price s { color: var(--muted); font-weight: 400; margin-right: var(--space-2); }
+.spot-price s { color: var(--muted); }
+.spot-price strong {
+  font-family: "Space Grotesk", sans-serif;
+  font-size: var(--step-2);
+}
+.spot-verified {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.8125rem;
+  color: var(--muted);
+}
+.spot-verified svg { width: 14px; height: 14px; color: var(--accent-bright); }
 
 /* ============ sections shared ============ */
 .section-head {
@@ -336,63 +348,99 @@ h3 { font-size: var(--step-1); }
   align-items: center;
   text-align: center;
 }
+.section-note { color: var(--light-muted); font-size: 0.9375rem; }
 .section-light {
   background: var(--light-bg);
   color: var(--light-fg);
 }
 .section-light h2, .section-light h3 { color: var(--light-fg); }
 
-/* ============ game cards ============ */
-.game-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(min(100%, 260px), 1fr));
-  gap: clamp(16px, 2vw, 32px);
-}
-.game-card {
-  display: flex;
-  flex-direction: column;
-  background: var(--light-surface);
-  border: 1px solid var(--light-border);
-  border-radius: var(--radius-lg);
-  overflow: hidden;
-  box-shadow: var(--shadow-card);
-  transition: transform var(--med) var(--ease), box-shadow var(--med) var(--ease);
-}
-.game-card:hover { transform: translateY(-4px); box-shadow: var(--shadow-card-hover); }
-
-.game-cover {
-  position: relative;
-  aspect-ratio: 16 / 10;
+/* ============ shelves ============ */
+.shelf { padding-block: clamp(32px, 4vw, 56px); }
+.shelf:first-of-type { padding-top: var(--space-6); }
+.shelf-head {
   display: flex;
   align-items: flex-end;
-  padding: var(--space-3);
+  justify-content: space-between;
+  gap: var(--space-4);
+  margin-bottom: var(--space-4);
+}
+.shelf-nav { display: flex; gap: var(--space-2); }
+.shelf-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--fg);
+  cursor: pointer;
+  transition: border-color var(--fast) var(--ease), color var(--fast) var(--ease), background var(--fast) var(--ease);
+}
+.shelf-btn:hover { border-color: var(--accent-bright); color: var(--accent-bright); }
+.shelf-btn:active { background: var(--surface-2); }
+.shelf-btn svg { width: 20px; height: 20px; }
+
+.shelf-track {
+  display: flex;
+  gap: var(--space-4);
+  overflow-x: auto;
+  scroll-snap-type: x proximity;
+  scroll-padding-inline: clamp(16px, 5vw, 64px);
+  padding-block: var(--space-2) var(--space-4);
+  scrollbar-width: thin;
+  scrollbar-color: var(--surface-2) transparent;
+}
+.shelf-track .g-card {
+  flex: 0 0 clamp(210px, 22vw, 252px);
+  scroll-snap-align: start;
+}
+
+/* ============ storefront game card ============ */
+.game-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 224px), 1fr));
+  gap: clamp(16px, 2vw, 28px);
+}
+.g-card {
+  display: flex;
+  flex-direction: column;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
   overflow: hidden;
+  transition: transform var(--med) var(--ease), border-color var(--med) var(--ease), box-shadow var(--med) var(--ease);
 }
-.game-cover::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background:
-    radial-gradient(120% 90% at 85% 0%, rgba(255, 255, 255, 0.18), transparent 55%),
-    linear-gradient(180deg, transparent 40%, rgba(0, 0, 0, 0.45));
+.g-card:hover {
+  transform: translateY(-4px);
+  border-color: rgba(95, 190, 123, 0.45);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.35);
 }
-.cover-title {
+.section-light .g-card { box-shadow: var(--shadow-card); }
+.section-light .g-card:hover { box-shadow: var(--shadow-card-hover); }
+
+.g-cover-wrap {
   position: relative;
-  z-index: 1;
-  font-family: "Space Grotesk", sans-serif;
-  font-weight: 700;
-  font-size: 1.375rem;
-  line-height: 1.05;
-  letter-spacing: -0.01em;
-  color: #fff;
-  text-shadow: 0 2px 12px rgba(0, 0, 0, 0.45);
-  max-width: 12ch;
+  display: block;
+  aspect-ratio: 2 / 3;
+  overflow: hidden;
+  background: var(--surface-2);
 }
-.discount-badge {
+.g-cover-wrap img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform var(--med) var(--ease);
+}
+.g-card:hover .g-cover-wrap img { transform: scale(1.04); }
+
+.badge-save {
   position: absolute;
-  z-index: 1;
-  top: var(--space-3);
-  right: var(--space-3);
+  top: var(--space-2);
+  left: var(--space-2);
+  z-index: 2;
   background: var(--accent);
   color: #fff;
   font-family: "Space Grotesk", sans-serif;
@@ -401,99 +449,133 @@ h3 { font-size: var(--step-1); }
   padding: 4px 10px;
   border-radius: 999px;
 }
+.badge-special {
+  position: absolute;
+  top: var(--space-2);
+  right: var(--space-2);
+  z-index: 2;
+  background: #fff;
+  color: var(--light-fg);
+  font-family: "Space Grotesk", sans-serif;
+  font-weight: 600;
+  font-size: 0.75rem;
+  padding: 4px 10px;
+  border-radius: 999px;
+}
+.spot-price .badge-save { position: static; }
 
-.game-body {
+.g-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
   display: flex;
   flex-direction: column;
+  justify-content: flex-end;
   gap: var(--space-3);
-  padding: var(--space-4);
+  padding: var(--space-3);
+  background: linear-gradient(180deg, rgba(12, 15, 13, 0.2), rgba(12, 15, 13, 0.94) 60%);
+  opacity: 0;
+  transition: opacity var(--med) var(--ease);
+}
+@media (hover: hover) {
+  .g-card:hover .g-overlay { opacity: 1; }
+}
+.g-cover-wrap:focus-visible .g-overlay { opacity: 1; }
+.g-desc { font-size: 0.875rem; color: var(--fg); line-height: 1.5; }
+.g-facts { display: grid; gap: 4px; }
+.g-facts div { display: flex; justify-content: space-between; gap: var(--space-2); font-size: 0.75rem; }
+.g-facts dt { color: var(--muted); }
+.g-facts dd { color: var(--fg); text-align: right; }
+
+.g-body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-3);
   flex: 1;
 }
-.game-meta-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--space-2);
+.g-title {
+  font-size: 1rem;
+  line-height: 1.25;
+  min-height: 2.5em;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
-.game-title-sm {
-  font-family: "Space Grotesk", sans-serif;
-  font-size: 1.0625rem;
+.g-chips { display: flex; align-items: center; gap: var(--space-2); flex-wrap: wrap; }
+.chip {
+  font-size: 0.6875rem;
   font-weight: 600;
-  color: var(--light-fg);
-}
-.platform-badge {
-  flex-shrink: 0;
-  font-size: 0.75rem;
-  font-weight: 600;
-  letter-spacing: 0.04em;
-  color: var(--light-muted);
-  border: 1px solid var(--light-border);
-  border-radius: 6px;
+  letter-spacing: 0.05em;
   padding: 3px 8px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  color: var(--muted);
 }
-.license-status {
+.pf-pc { color: #9DC4F5; border-color: rgba(157, 196, 245, 0.35); }
+.pf-ps { color: #8FA7F0; border-color: rgba(143, 167, 240, 0.35); }
+.pf-xbox { color: #8FD69B; border-color: rgba(143, 214, 155, 0.35); }
+.pf-switch { color: #F0938F; border-color: rgba(240, 147, 143, 0.35); }
+.chip-rating { color: var(--muted); }
+
+.g-score {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  font-size: 0.8125rem;
-  color: var(--light-muted);
+  gap: 4px;
+  margin-left: auto;
+  font-family: "Space Grotesk", sans-serif;
+  font-weight: 600;
+  font-size: 0.875rem;
+  color: var(--accent-bright);
 }
-.license-status svg { width: 14px; height: 14px; color: var(--accent); flex-shrink: 0; }
+.g-score svg { width: 13px; height: 13px; }
 
-.price-row {
+.g-sub { font-size: 0.8125rem; color: var(--muted); }
+.g-verified {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 12px;
+  font-size: 0.75rem;
+  color: var(--muted);
+}
+.g-verified span {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  white-space: nowrap;
+}
+.g-verified svg { width: 12px; height: 12px; color: var(--accent-bright); flex-shrink: 0; }
+
+.g-price-row {
   display: flex;
   align-items: baseline;
   gap: var(--space-2);
   margin-top: auto;
+  padding-top: var(--space-2);
   font-variant-numeric: tabular-nums;
 }
-.price-original {
-  color: var(--light-muted);
+.g-retail {
+  color: var(--muted);
   text-decoration: line-through;
-  font-size: 0.9375rem;
+  font-size: 0.875rem;
 }
-.price-current {
+.g-price {
   font-family: "Space Grotesk", sans-serif;
-  font-size: 1.375rem;
+  font-size: 1.25rem;
   font-weight: 700;
-  color: var(--light-fg);
+  color: var(--fg);
 }
-.game-card .btn { width: 100%; }
+.g-buy { width: 100%; }
 
-/* deal variant: dark cards on dark section */
-.section-deals { background: var(--bg); }
-.deal-grid .game-card {
-  background: var(--surface);
-  border-color: var(--border);
-  box-shadow: none;
-}
-.deal-grid .game-title-sm, .deal-grid .price-current { color: var(--fg); }
-.deal-grid .platform-badge { color: var(--muted); border-color: var(--border); }
-.deal-grid .license-status { color: var(--muted); }
-.deal-grid .price-original { color: var(--muted); }
-.deal-grid .game-card:hover { border-color: rgba(95, 190, 123, 0.4); }
-.deals-timer { color: var(--muted); font-size: 0.9375rem; }
-.deals-timer strong {
-  color: var(--accent-bright);
-  font-family: "Space Grotesk", sans-serif;
-  font-variant-numeric: tabular-nums;
-}
-.deal-tag {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 0.8125rem;
-  font-weight: 600;
-  color: var(--accent-bright);
-}
-.deal-tag svg { width: 14px; height: 14px; }
+/* light-section card text overrides (cards keep dark surface for contrast) */
+.section-light .g-card { border-color: rgba(16, 20, 15, 0.08); }
 
 /* ============ how it works ============ */
 .steps {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 250px), 1fr));
   gap: clamp(16px, 2vw, 32px);
-  counter-reset: step;
 }
 .step-card {
   position: relative;
@@ -525,6 +607,15 @@ h3 { font-size: var(--step-1); }
 }
 .step-card p { color: var(--muted); font-size: 0.9375rem; }
 
+.step-card-light {
+  background: var(--light-surface);
+  border-color: var(--light-border);
+  box-shadow: var(--shadow-card);
+}
+.step-card-light p { color: var(--light-muted); }
+.step-card-light .step-num { color: rgba(16, 20, 15, 0.07); }
+.step-icon-light { color: var(--accent); background: rgba(42, 100, 54, 0.10); }
+
 /* ============ trust ============ */
 .trust-grid {
   display: grid;
@@ -551,6 +642,45 @@ h3 { font-size: var(--step-1); }
 }
 .trust-card p { color: var(--light-muted); font-size: 0.9375rem; }
 .trust-cta { display: flex; justify-content: center; margin-top: var(--space-7); }
+
+.trust-card-dark {
+  background: var(--surface);
+  border-color: var(--border);
+  box-shadow: none;
+}
+.trust-card-dark p { color: var(--muted); }
+.trust-card-dark .trust-icon { color: var(--accent-bright); background: rgba(42, 100, 54, 0.18); }
+
+/* ============ customer reviews ============ */
+.reviews-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr));
+  gap: clamp(16px, 2vw, 32px);
+}
+.review-card {
+  background: var(--light-surface);
+  border: 1px solid var(--light-border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-5);
+  display: grid;
+  gap: var(--space-3);
+  align-content: start;
+  box-shadow: var(--shadow-card);
+}
+.rv-stars { display: flex; gap: 3px; }
+.rv-star svg { width: 16px; height: 16px; color: var(--light-border); }
+.rv-star.on svg { color: var(--accent); }
+.review-card blockquote {
+  color: var(--light-fg);
+  font-size: 0.9375rem;
+  line-height: 1.6;
+}
+.review-card figcaption { display: grid; gap: 2px; }
+.review-card figcaption strong {
+  font-family: "Space Grotesk", sans-serif;
+  font-size: 0.9375rem;
+}
+.review-card figcaption span { font-size: 0.8125rem; color: var(--light-muted); }
 
 /* ============ footer ============ */
 .site-footer {
@@ -629,7 +759,7 @@ h3 { font-size: var(--step-1); }
 }
 
 @media (min-width: 1024px) {
-  .hero-inner { grid-template-columns: 1.15fr 0.85fr; }
+  .hero-inner { grid-template-columns: 1.05fr 0.95fr; }
   .hero-visual { display: block; }
 }
 
@@ -653,6 +783,8 @@ h3 { font-size: var(--step-1); }
   .nav-cta-item { margin-top: var(--space-3); }
   .nav-cta-item .btn { width: 100%; }
   .logo-svg { height: 38px; }
+  .shelf-track .g-card { flex-basis: min(72vw, 240px); }
+  .spot-inner { grid-template-columns: 128px 1fr; }
 }
 
 @media (prefers-reduced-motion: reduce) {

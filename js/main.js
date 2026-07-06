@@ -1,55 +1,117 @@
-// ============ reusable card components ============
+// ============ helpers ============
 const fmt = (n) => "$" + n.toFixed(2);
-const discountPct = (g) => Math.round((1 - g.price / g.priceOriginal) * 100);
-const coverGradient = (g) =>
-  `linear-gradient(135deg, hsl(${g.hues[0]} 45% 22%), hsl(${g.hues[1]} 55% 38%))`;
+const savePct = (g) => Math.round((1 - g.price / g.retail) * 100);
+const year = (g) => g.released.slice(0, 4);
 
+const starIcon = `<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2l2.92 6.26 6.58.8-4.86 4.73 1.15 6.71L12 17.77 6.21 20.5l1.15-6.71L2.5 9.06l6.58-.8L12 2z"/></svg>`;
 const shieldIcon = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 12 2 2 4-4"/></svg>`;
 const boltIcon = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13 2 3 14h7l-1 8 10-12h-7l1-8z"/></svg>`;
 
-function ownersLabel(g) {
-  return g.owners === 1 ? "1 previous owner" : `${g.owners} previous owners`;
-}
+const PLATFORM_CLASS = { PC: "pf-pc", PS5: "pf-ps", Xbox: "pf-xbox", Switch: "pf-switch" };
 
-function gameCard(g, { tag = null } = {}) {
+// ============ card component ============
+function gameCard(g) {
   return `
-    <article class="game-card reveal">
-      <div class="game-cover" style="background:${coverGradient(g)}">
-        <span class="discount-badge">-${discountPct(g)}%</span>
-        <span class="cover-title">${g.title}</span>
-      </div>
-      <div class="game-body">
-        ${tag ? `<span class="deal-tag">${boltIcon}${tag}</span>` : ""}
-        <div class="game-meta-row">
-          <h3 class="game-title-sm">${g.title}</h3>
-          <span class="platform-badge">${g.platform}</span>
+    <article class="g-card">
+      <a href="#trending" class="g-cover-wrap" aria-label="${g.title}, ${g.platform}, ${fmt(g.price)}, save ${savePct(g)} percent">
+        <img src="${COVER(g.appid)}" alt="${g.title} cover art" width="600" height="900" loading="lazy" decoding="async">
+        <span class="badge-save">-${savePct(g)}%</span>
+        ${g.special ? `<span class="badge-special">${g.special}</span>` : ""}
+        <div class="g-overlay">
+          <p class="g-desc">${g.desc}</p>
+          <dl class="g-facts">
+            <div><dt>Developer</dt><dd>${g.developer}</dd></div>
+            <div><dt>Publisher</dt><dd>${g.publisher}</dd></div>
+            <div><dt>Released</dt><dd>${g.released}</dd></div>
+          </dl>
         </div>
-        <span class="license-status">${shieldIcon}${g.condition} &middot; ${ownersLabel(g)}</span>
-        <div class="price-row">
-          <span class="price-original">${fmt(g.priceOriginal)}</span>
-          <span class="price-current">${fmt(g.price)}</span>
+      </a>
+      <div class="g-body">
+        <h3 class="g-title">${g.title}</h3>
+        <div class="g-chips">
+          <span class="chip ${PLATFORM_CLASS[g.platform]}">${g.platform}</span>
+          <span class="chip chip-rating" title="ESRB rating">${g.rating}</span>
+          <span class="g-score">${starIcon}${g.score.toFixed(1)}</span>
         </div>
-        <a href="#featured" class="btn btn-primary btn-sm" aria-label="Buy and download ${g.title} for ${fmt(g.price)}">Buy &amp; Download</a>
+        <p class="g-sub">${g.genre} &middot; ${year(g)}</p>
+        <p class="g-verified"><span>${shieldIcon}Verified License</span><span>${boltIcon}Instant Delivery</span></p>
+        <div class="g-price-row">
+          <span class="g-retail">${fmt(g.retail)}</span>
+          <span class="g-price">${fmt(g.price)}</span>
+        </div>
+        <a href="#trending" class="btn btn-primary btn-sm g-buy" aria-label="Buy ${g.title} for ${fmt(g.price)}">Buy Now</a>
       </div>
     </article>`;
 }
 
-function heroCard(g) {
+// ============ hero spotlight ============
+function spotlight(g) {
   return `
-    <div class="hero-card">
-      <span class="mini-cover" style="background:${coverGradient(g)}">${g.title.charAt(0)}</span>
-      <div class="hero-card-meta">
-        <span class="hc-title">${g.title}</span>
-        <span class="hc-platform">${g.platform} &middot; ${g.condition}</span>
-        <span class="hc-price"><s>${fmt(g.priceOriginal)}</s>${fmt(g.price)}</span>
+    <div class="spot-card">
+      <span class="spot-label">${boltIcon}Deal of the day</span>
+      <div class="spot-inner">
+        <img src="${COVER(g.appid)}" alt="${g.title} cover art" width="600" height="900" fetchpriority="high" decoding="async">
+        <div class="spot-meta">
+          <h2 class="spot-title">${g.title}</h2>
+          <p class="spot-sub">${g.genre} &middot; ${g.platform} &middot; ${starIcon}${g.score.toFixed(1)}</p>
+          <p class="spot-desc">${g.desc}</p>
+          <div class="spot-price">
+            <span class="badge-save">-${savePct(g)}%</span>
+            <s>${fmt(g.retail)}</s>
+            <strong>${fmt(g.price)}</strong>
+          </div>
+          <a href="#trending" class="btn btn-primary g-buy">Buy Now</a>
+          <p class="spot-verified">${shieldIcon}Verified license, transfers in under a minute</p>
+        </div>
       </div>
     </div>`;
 }
 
-// ============ render ============
-document.getElementById("featured-grid").innerHTML = GAMES.map((g) => gameCard(g)).join("");
-document.getElementById("deals-grid").innerHTML = DEALS.map((g) => gameCard(g, { tag: g.tag })).join("");
-document.getElementById("hero-cards").innerHTML = GAMES.slice(0, 3).map(heroCard).join("");
+// ============ sections ============
+const byTag = (tag) => GAMES.filter((g) => g.tags.includes(tag));
+const SHELVES = {
+  "shelf-trending": byTag("trending"),
+  "shelf-new": byTag("new").sort((a, b) => b.released.localeCompare(a.released)),
+  "shelf-top": GAMES.filter((g) => g.score >= 9.2).sort((a, b) => b.score - a.score),
+  "shelf-best": byTag("best"),
+  "shelf-aaa": byTag("aaa"),
+  "shelf-indie": byTag("indie"),
+  "shelf-recent": byTag("recent").sort((a, b) => b.released.localeCompare(a.released))
+};
+
+Object.entries(SHELVES).forEach(([id, games]) => {
+  document.getElementById(id).innerHTML = games.map(gameCard).join("");
+});
+
+document.getElementById("grid-under20").innerHTML =
+  GAMES.filter((g) => g.price < 20).sort((a, b) => a.price - b.price).map(gameCard).join("");
+
+document.getElementById("spotlight").innerHTML =
+  spotlight(GAMES.find((g) => g.id === "clair-obscur"));
+
+// ============ customer reviews ============
+function reviewCard(r) {
+  const stars = Array.from({ length: 5 }, (_, i) =>
+    `<span class="rv-star ${i < r.stars ? "on" : ""}">${starIcon}</span>`
+  ).join("");
+  return `
+    <figure class="review-card">
+      <div class="rv-stars" role="img" aria-label="${r.stars} out of 5 stars">${stars}</div>
+      <blockquote>${r.text}</blockquote>
+      <figcaption><strong>${r.name}</strong><span>${r.detail}</span></figcaption>
+    </figure>`;
+}
+document.getElementById("reviews-grid").innerHTML = REVIEWS.map(reviewCard).join("");
+
+// ============ shelf arrows ============
+document.querySelectorAll(".shelf-btn").forEach((btn) => {
+  btn.addEventListener("click", () => {
+    const track = document.getElementById(btn.dataset.target);
+    const card = track.querySelector(".g-card");
+    const step = card ? (card.offsetWidth + 24) * 2 : 480;
+    track.scrollBy({ left: step * Number(btn.dataset.dir), behavior: "smooth" });
+  });
+});
 
 // ============ mobile nav ============
 const navToggle = document.querySelector(".nav-toggle");
@@ -66,29 +128,8 @@ navMenu.addEventListener("click", (e) => {
   }
 });
 
-// ============ weekly deals countdown ============
-const countdownEl = document.getElementById("deals-countdown");
-function nextMondayMidnight() {
-  const now = new Date();
-  const d = new Date(now);
-  d.setDate(now.getDate() + ((8 - now.getDay()) % 7 || 7));
-  d.setHours(0, 0, 0, 0);
-  return d;
-}
-const dealsEnd = nextMondayMidnight();
-function tick() {
-  const ms = Math.max(0, dealsEnd - Date.now());
-  const h = Math.floor(ms / 3600000);
-  const m = Math.floor((ms % 3600000) / 60000);
-  const s = Math.floor((ms % 60000) / 1000);
-  const pad = (n) => String(n).padStart(2, "0");
-  countdownEl.textContent = `${pad(h)}:${pad(m)}:${pad(s)}`;
-}
-tick();
-setInterval(tick, 1000);
-
 // ============ scroll reveal ============
-const revealEls = document.querySelectorAll(".reveal, .step-card, .trust-card");
+const revealEls = document.querySelectorAll(".g-card, .step-card, .trust-card, .review-card");
 if ("IntersectionObserver" in window && !window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
   revealEls.forEach((el) => el.classList.add("reveal"));
   const io = new IntersectionObserver(
@@ -101,7 +142,7 @@ if ("IntersectionObserver" in window && !window.matchMedia("(prefers-reduced-mot
         }
       });
     },
-    { threshold: 0.12 }
+    { threshold: 0.1 }
   );
   revealEls.forEach((el) => io.observe(el));
 } else {
