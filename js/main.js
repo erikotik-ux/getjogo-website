@@ -210,9 +210,8 @@ if (hogSprite && !window.matchMedia("(prefers-reduced-motion: reduce)").matches)
 }
 
 // ============ gentle parallax on the hero layers ============
-const pxTrees = document.querySelector(".px-trees");
 const sceneBg = document.querySelector(".scene-bg");
-if (pxTrees && sceneBg && !window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+if (sceneBg && !window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
   let queued = false;
   addEventListener("scroll", () => {
     if (queued) return;
@@ -221,8 +220,7 @@ if (pxTrees && sceneBg && !window.matchMedia("(prefers-reduced-motion: reduce)")
       queued = false;
       const y = window.scrollY;
       if (y > window.innerHeight) return;
-      sceneBg.style.transform = `translate3d(0,${(y * 0.14).toFixed(1)}px,0)`;
-      pxTrees.style.transform = `translate3d(0,${(y * 0.06).toFixed(1)}px,0)`;
+      sceneBg.style.transform = `translate3d(0,${(y * 0.12).toFixed(1)}px,0)`;
     });
   }, { passive: true });
 }

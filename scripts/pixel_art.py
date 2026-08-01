@@ -1,8 +1,10 @@
 #!/usr/bin/env python
-"""Author the hero's 16-bit layer: ground platform, props, tree band, mascot sheet.
+"""Author the hero's 16-bit layer: forest backdrop, ground, props, mascot sheet.
 
 Everything is drawn on an exact pixel grid (no anti-aliasing) so it stays crisp
-under `image-rendering: pixelated`. Run:  python scripts/pixel_art.py
+under `image-rendering: pixelated`.
+
+    cd D:/Business/GetJogo && python scripts/pixel_art.py
 """
 import math
 import os
@@ -13,16 +15,16 @@ OUT = "public"
 
 # ---------------------------------------------------------------- palettes
 T = (0, 0, 0, 0)
-# mascot: mostly white, per the logo, with a dark forest outline
-OUTL = (34, 48, 38, 255)
+# mascot: the logo hedgehog inverted - white quills split by dark cut lines
+OUTL = (26, 38, 30, 255)
 WHT = (255, 255, 255, 255)
-SHD = (201, 211, 204, 255)
-SHD2 = (170, 183, 174, 255)
-EYE = (13, 20, 16, 255)
-NOSE = (42, 100, 54, 255)
-PINK = (232, 168, 168, 255)
+SHD = (203, 214, 206, 255)
+SHD2 = (168, 182, 172, 255)
+EYE = (18, 26, 21, 255)
+NOSE = (34, 44, 38, 255)
+PINK = (233, 170, 170, 255)
 
-# ground: Yoshi's Island / Link to the Past greens and dirt
+# ground
 G_LIT = (139, 219, 94, 255)
 G_MID = (85, 175, 57, 255)
 G_DRK = (50, 126, 40, 255)
@@ -33,9 +35,21 @@ D_DRK = (88, 54, 29, 255)
 D_OUT = (56, 34, 15, 255)
 PEB = (194, 140, 87, 255)
 
+# forest backdrop: dark, cool, brand-adjacent greens
+SKY_HI = (9, 17, 16, 255)
+SKY_LO = (16, 32, 26, 255)
+MOON = (226, 240, 220, 255)
+MOON_GLOW = (72, 112, 90, 255)
+F_FAR = (28, 54, 43, 255)
+F_MID = (20, 40, 32, 255)
+F_NEAR = (12, 25, 19, 255)
+F_TRUNK = (17, 30, 22, 255)
+MIST = (30, 54, 45, 255)
+STAR = (168, 198, 180, 255)
 
-def img(w, h):
-    return Image.new("RGBA", (w, h), T)
+
+def img(w, h, fill=T):
+    return Image.new("RGBA", (w, h), fill)
 
 
 def put(im, x, y, c):
@@ -57,7 +71,6 @@ def disc(im, cx, cy, r, c):
 
 
 def outline(im, c=OUTL):
-    """Wrap every opaque run in a 1px dark border."""
     src = im.copy()
     w, h = im.size
     for y in range(h):
@@ -71,29 +84,43 @@ def outline(im, c=OUTL):
                     break
 
 
+def _spike(im, bx, by, tx, ty, halfw, col):
+    """Filled triangle from a base segment to a tip."""
+    dx, dy = tx - bx, ty - by
+    ln = max(1.0, math.hypot(dx, dy))
+    nx, ny = -dy / ln, dx / ln
+    steps = int(ln) + 1
+    for s in range(steps + 1):
+        t = s / steps
+        w = halfw * (1.0 - t)
+        cx, cy = bx + dx * t, by + dy * t
+        k = int(w) + 1
+        for j in range(-k, k + 1):
+            if abs(j) <= w + 0.35:
+                put(im, round(cx + nx * j), round(cy + ny * j), col)
+
+
 # ---------------------------------------------------------------- ground
-GW, GH = 64, 24          # tile art size; grass 0..8, dirt 9..23
+GW, GH = 64, 24
 
 
 def ground_tile():
     im = img(GW, GH)
-    # periodic so the tile repeats seamlessly
+
     def top(x):
         return 2 + round(1.3 * math.sin(2 * math.pi * x / GW * 3)
                          + 0.9 * math.sin(2 * math.pi * x / GW * 7 + 1.1))
 
     for x in range(GW):
         t = top(x)
-        rect(im, x, t, x, t + 1, G_LIT)          # lit blade tips
+        rect(im, x, t, x, t + 1, G_LIT)
         rect(im, x, t + 2, x, 6, G_MID)
         rect(im, x, 7, x, 8, G_DRK)
         put(im, x, 9, G_EDG)
-        rect(im, x, 10, x, GH - 1, D_MID)        # dirt body
-        # a little sparkle on the grass
+        rect(im, x, 10, x, GH - 1, D_MID)
         if x % 11 == 3:
             put(im, x, t + 2, G_LIT)
 
-    # dirt mottling + pebbles, kept off the seam so nothing is cut in half
     for x in range(GW):
         for y in range(10, GH):
             n = (math.sin(x * 12.9898 + y * 78.233) * 43758.5453) % 1
@@ -104,138 +131,204 @@ def ground_tile():
     for cx, cy, r in ((9, 15, 2), (26, 19, 2), (45, 14, 2), (56, 20, 1), (35, 22, 1)):
         disc(im, cx, cy, r, D_DRK)
         put(im, cx - 1, cy - 1, PEB)
-    rect(im, 0, GH - 2, GW - 1, GH - 1, D_DRK)   # base shadow
+    rect(im, 0, GH - 2, GW - 1, GH - 1, D_DRK)
     rect(im, 0, GH - 1, GW - 1, GH - 1, D_OUT)
     return im
 
 
 # ---------------------------------------------------------------- props
-def props_sheet():
-    """32x24 cells: flower, tuft, question block, bush."""
-    cw, ch, n = 32, 24, 4
-    im = img(cw * n, ch)
+MUSH_CAP = (206, 74, 68, 255)
+MUSH_SPOT = (242, 168, 158, 255)
+MUSH_STEM = (238, 228, 206, 255)
+ROCK_LIT = (120, 130, 124, 255)
+ROCK_MID = (88, 98, 93, 255)
+ROCK_DRK = (56, 66, 62, 255)
+PETAL_A = (232, 92, 96, 255)
+PETAL_B = (238, 196, 92, 255)
+PETAL_C = (176, 154, 226, 255)
+PROP_N = 6
 
-    def cell(i):
+
+def props_sheet():
+    """32x24 cells: tuft, red flowers, yellow flowers, bush, mushrooms, rocks."""
+    cw, ch = 32, 24
+    im = img(cw * PROP_N, ch)
+
+    def c(i):
         return i * cw
 
-    # 0 flower
-    ox = cell(0)
-    rect(im, ox + 15, 14, ox + 15, 21, G_DRK)
-    put(im, ox + 14, 17, G_MID); put(im, ox + 16, 16, G_MID)
-    for dx, dy in ((0, -1), (-1, 0), (1, 0), (0, 1)):
-        put(im, ox + 15 + dx, 12 + dy, (232, 92, 96, 255))
-    put(im, ox + 15, 12, (250, 214, 96, 255))
-
-    # 1 grass tuft
-    ox = cell(1)
-    for i, (bx, hgt) in enumerate(((12, 5), (15, 8), (18, 6), (21, 4))):
+    ox = c(0)                                   # grass tuft
+    for bx, hgt, lean in ((11, 6, 0), (14, 9, 1), (17, 11, 0), (20, 8, -1), (23, 5, 1)):
         for k in range(hgt):
-            put(im, ox + bx + (k // 3), 21 - k, G_MID if k < hgt - 2 else G_LIT)
+            put(im, ox + bx + round(lean * k / 3), 21 - k, G_LIT if k > hgt - 3 else G_MID)
 
-    # 2 question block
-    ox = cell(2)
-    rect(im, ox + 8, 4, ox + 23, 19, (226, 160, 46, 255))
-    rect(im, ox + 9, 5, ox + 22, 18, (247, 199, 74, 255))
-    for c in (ox + 8, ox + 23):
-        rect(im, c, 4, c, 19, (150, 92, 18, 255))
-    rect(im, ox + 8, 4, ox + 23, 4, (150, 92, 18, 255))
-    rect(im, ox + 8, 19, ox + 23, 19, (150, 92, 18, 255))
-    for x, y in ((11, 6), (20, 6), (11, 17), (20, 17)):
-        put(im, ox + x, y, (150, 92, 18, 255))
-    q = ["..###..", ".#...#.", ".....#.", "...##..", "...#...", ".......", "...#..."]
-    for r, row in enumerate(q):
-        for c, ch_ in enumerate(row):
-            if ch_ == "#":
-                put(im, ox + 12 + c, 7 + r, (150, 92, 18, 255))
+    for idx, petal in ((1, PETAL_A), (2, PETAL_B)):   # flowers
+        ox = c(idx)
+        rect(im, ox + 14, 13, ox + 14, 21, G_DRK)
+        put(im, ox + 13, 17, G_MID)
+        put(im, ox + 15, 15, G_MID)
+        for dx, dy in ((0, -2), (-1, -1), (1, -1), (-1, 1), (1, 1), (0, 2)):
+            put(im, ox + 14 + dx, 12 + dy, petal)
+        put(im, ox + 14, 12, (252, 238, 176, 255))
+        rect(im, ox + 20, 16, ox + 20, 21, G_DRK)
+        for dx, dy in ((0, -1), (-1, 0), (1, 0), (0, 1)):
+            put(im, ox + 20 + dx, 15 + dy, PETAL_C if idx == 2 else petal)
+        put(im, ox + 20, 15, (252, 238, 176, 255))
 
-    # 3 bush
-    ox = cell(3)
+    ox = c(3)                                   # bush
     disc(im, ox + 12, 19, 4, G_DRK)
-    disc(im, ox + 17, 18, 5, G_DRK)
-    disc(im, ox + 22, 20, 4, G_DRK)
-    disc(im, ox + 16, 17, 3, G_MID)
-    rect(im, ox + 6, 22, ox + 26, 23, T)
+    disc(im, ox + 17, 17, 5, G_DRK)
+    disc(im, ox + 22, 19, 4, G_DRK)
+    disc(im, ox + 16, 16, 3, G_MID)
+    disc(im, ox + 21, 18, 2, G_MID)
+    for x, y in ((14, 15), (19, 13), (24, 17)):
+        put(im, ox + x, y, G_LIT)
+    rect(im, ox + 5, 22, ox + 27, 23, T)
+
+    ox = c(4)                                   # mushrooms
+    rect(im, ox + 13, 17, ox + 15, 21, MUSH_STEM)
+    for w, y in ((5, 13), (7, 14), (7, 15), (5, 16)):
+        rect(im, ox + 14 - w // 2, y, ox + 14 + w // 2, y, MUSH_CAP)
+    put(im, ox + 12, 14, MUSH_SPOT)
+    put(im, ox + 16, 15, MUSH_SPOT)
+    rect(im, ox + 21, 19, ox + 22, 21, MUSH_STEM)
+    for w, y in ((3, 17), (5, 18)):
+        rect(im, ox + 21 - w // 3, y, ox + 21 + w // 2, y, MUSH_CAP)
+    put(im, ox + 22, 18, MUSH_SPOT)
+
+    ox = c(5)                                   # rocks
+    for cx, cy, r in ((13, 19, 4), (21, 20, 3)):
+        disc(im, ox + cx, cy, r, ROCK_MID)
+        disc(im, ox + cx - 1, cy - 1, max(1, r - 2), ROCK_LIT)
+        for x in range(ox + cx - r, ox + cx + r + 1):
+            put(im, x, cy + r - 1, ROCK_DRK)
+    rect(im, ox + 5, 22, ox + 28, 23, T)
     return im
 
 
-# ---------------------------------------------------------------- tree band
-def tree_band():
-    """Tiling pixel-pine silhouette that sits between plate and platform."""
-    w, h = 128, 56
-    im = img(w, h)
-    dark = (18, 34, 24, 255)
-    lite = (26, 48, 33, 255)
-    for base, scale, tone in ((10, 1.0, dark), (46, 0.75, lite), (84, 1.15, dark), (116, 0.8, lite)):
-        th = int(38 * scale)
-        top = h - th
-        tiers = 4
-        for t in range(tiers):
-            y0 = top + int(th * t / tiers)
-            y1 = top + int(th * (t + 1) / tiers) + 1
-            for y in range(y0, y1):
-                half = int((y - top) * 0.42) - int(t * 1.2) + 2
-                half = max(1, half)
-                for x in range(base - half, base + half + 1):
-                    put(im, x % w, min(y, h - 1), tone)
-        rect(im, base - 1, h - 5, base + 1, h - 1, (30, 22, 14, 255))
+# ---------------------------------------------------------------- forest
+FW, FH = 384, 200        # tiles horizontally; sky above is filled by CSS
+
+
+def _pine(im, x, base, h, col, trunk=None):
+    """Stepped pixel pine: tiers of decreasing width."""
+    tiers = max(3, h // 12)
+    for t in range(tiers):
+        y0 = base - round(h * (t + 1) / tiers)
+        y1 = base - round(h * t / tiers)
+        for y in range(y0, y1 + 1):
+            spread = (y - y0) / max(1, (y1 - y0))
+            half = round((0.16 * h / tiers) * (1 + spread * 2.4) + t * 0.5)
+            for dx in range(-half, half + 1):
+                put(im, (x + dx) % im.width, y, col)
+    if trunk:
+        for y in range(base - 2, base + 4):
+            for x2 in range(x - 1, x + 2):
+                put(im, x2 % im.width, y, trunk)
+
+
+def forest_bg():
+    im = img(FW, FH)
+    for y in range(FH):                       # night sky
+        t = y / (FH - 1)
+        c = tuple(round(SKY_HI[i] + (SKY_LO[i] - SKY_HI[i]) * t) for i in range(3))
+        rect(im, 0, y, FW - 1, y, c + (255,))
+
+    for i in range(46):                       # stars
+        n = (math.sin(i * 91.7) * 43758.5453) % 1
+        m = (math.sin(i * 27.3 + 4.1) * 24634.6345) % 1
+        put(im, round(n * FW), round(m * 78), STAR)
+
+    mx, my = 306, 34                          # moon with a soft glow
+    for r in range(16, 9, -1):
+        a = int(26 * (17 - r) / 7)
+        for y in range(my - r, my + r + 1):
+            for x in range(mx - r, mx + r + 1):
+                if (x - mx) ** 2 + (y - my) ** 2 <= r * r:
+                    px = im.getpixel((x % FW, y))
+                    im.putpixel((x % FW, y), tuple(
+                        min(255, px[j] + (MOON_GLOW[j] - px[j]) * a // 255) for j in range(3)) + (255,))
+    disc(im, mx, my, 9, MOON)
+    disc(im, mx - 3, my - 3, 3, (232, 244, 230, 255))
+
+    for i in range(26):                       # far band
+        x = round(i * FW / 26 + 5 * math.sin(i * 2.1))
+        _pine(im, x, 132, 26 + round(14 * ((math.sin(i * 3.7) + 1) / 2)), F_FAR)
+    for y in range(126, 142):                 # mist between bands
+        for x in range(FW):
+            if (math.sin(x * 0.11 + y * 0.7) + 1) / 2 > 0.86:
+                put(im, x, y, MIST)
+
+    for i in range(18):                       # mid band
+        x = round(i * FW / 18 + 7 * math.sin(i * 1.3 + 2))
+        _pine(im, x, 166, 40 + round(22 * ((math.sin(i * 2.3 + 1) + 1) / 2)), F_MID, F_TRUNK)
+
+    for i in range(12):                       # near band
+        x = round(i * FW / 12 + 9 * math.sin(i * 0.9 + 5))
+        _pine(im, x, 200, 56 + round(30 * ((math.sin(i * 1.7 + 3) + 1) / 2)), F_NEAR, F_TRUNK)
+
+    for y in range(FH - 22, FH):              # haze so it meets the platform
+        a = (y - (FH - 22)) / 22
+        for x in range(FW):
+            px = im.getpixel((x, y))
+            im.putpixel((x, y), tuple(round(px[j] + (F_NEAR[j] - px[j]) * a) for j in range(3)) + (255,))
     return im
 
 
 # ---------------------------------------------------------------- mascot
-CW, CH = 32, 26          # cell size; feet rest on y = 23
+CW, CH = 32, 26
 FEET = 23
 
-
-def _spike(im, bx, by, tx, ty, halfw, col=WHT):
-    """Filled triangle from a base segment to a tip - reads as one quill."""
-    dx, dy = tx - bx, ty - by
-    ln = max(1.0, math.hypot(dx, dy))
-    nx, ny = -dy / ln, dx / ln          # perpendicular
-    steps = int(ln) + 1
-    for s_ in range(steps + 1):
-        t = s_ / steps
-        w = halfw * (1.0 - t)
-        cx_, cy_ = bx + dx * t, by + dy * t
-        k = int(w) + 1
-        for j in range(-k, k + 1):
-            if abs(j) <= w + 0.35:
-                put(im, round(cx_ + nx * j), round(cy_ + ny * j), col)
+# quills, straight off the logo: a few large flame-like spikes swept backward,
+# each carrying its own dark cut line so they read separately
+QUILLS = [
+    (0.13, 5.0, 2.0), (0.34, 7.0, 2.4), (0.52, 8.0, 2.6),
+    (0.70, 7.5, 2.5), (0.86, 6.0, 2.2), (1.02, 4.6, 1.9),
+]
 
 
-def _ridge(im, cx, cy, rx, ry, phase=0.0, n=8):
-    """Chunky spiked ridge sweeping back over the top of the body."""
-    for i in range(n):
-        a = math.pi * (0.06 + 0.90 * i / (n - 1))        # right -> over the top -> left
-        bx = cx + math.cos(a) * rx * 0.72
-        by = cy - math.sin(a) * ry * 0.72
-        ln = 6.0 + 1.2 * math.sin(i * 1.9 + phase)
-        tx = cx + math.cos(a + 0.34) * (rx * 0.72 + ln)
-        ty = cy - math.sin(a + 0.34) * (ry * 0.72 + ln)
-        _spike(im, bx, by, tx, ty, 2.3)
+def _quill_set(im, cx, cy, rx, ry, phase=0.0):
+    for i, (frac, ln, hw) in enumerate(QUILLS):
+        a = math.pi * frac
+        bx = cx + math.cos(a) * rx * 0.68
+        by = cy - math.sin(a) * ry * 0.68
+        wob = 0.7 * math.sin(i * 1.9 + phase)
+        sweep = a + 0.42                       # lean the tip backward
+        tx = cx + math.cos(sweep) * (rx * 0.68 + ln + wob)
+        ty = cy - math.sin(sweep) * (ry * 0.68 + ln + wob)
+        d = math.hypot(tx - bx, ty - by) or 1
+        ex, ey = tx + (tx - bx) / d * 1.2, ty + (ty - by) / d * 1.2
+        _spike(im, bx, by, ex, ey, hw + 1.0, OUTL)   # cut line
+        _spike(im, bx, by, tx, ty, hw, WHT)
 
 
-def _head(im, hx, hy, tilt=0.0, blink=False, ear_up=False):
-    """Head, short snout, eye. tilt (0..1) lifts the muzzle to look up."""
-    hy = hy - tilt * 1.4
+def _face(im, hx, hy, tilt=0.0, blink=False, ear_up=False, smile=False):
+    """Head with the logo's blunt pointed snout and crescent eye."""
+    hy -= tilt * 1.6
     disc(im, hx, hy, 5, WHT)
-    # short wedge snout, angled up with tilt
-    for i in range(4):
-        yy = hy + 1 - i * (0.30 + tilt * 1.05)
-        half = 2 - (i // 2)
+    step = 0.55 + tilt * 1.45                   # short blunt point, lifts with tilt
+    for i in range(3):
+        yy = hy + 1 - i * step
+        half = 3 - i
         rect(im, hx + 4 + i, round(yy) - half, hx + 4 + i, round(yy) + half - 1, WHT)
-    nx_, ny_ = hx + 7, round(hy + 1 - 3 * (0.30 + tilt * 1.05)) - 1
-    put(im, nx_, ny_, NOSE); put(im, nx_, ny_ + 1, NOSE)
-    # ear
-    ey = hy - 5 - (1 if ear_up else 0)
-    rect(im, hx - 2, ey, hx, ey + 1, WHT)
-    put(im, hx - 1, ey + 1, PINK)
-    # eye: 2x2 with a glint so it reads at small size
-    ex, ey2 = hx + 1, round(hy - 1 - tilt * 1.2)
+    nx, ny = hx + 6, round(hy + 1 - 2 * step)
+    rect(im, nx, ny - 1, nx, ny, NOSE)
+
+    ey = hy - 5 - (1 if ear_up else 0)          # ear
+    _spike(im, hx - 1, hy - 3, hx - 2, ey, 2.0, WHT)
+    put(im, hx - 2, ey + 2, PINK)
+
+    ex, ey2 = hx + 1, round(hy - 1 - tilt * 1.1)   # crescent eye, as in the logo
     if blink:
         rect(im, ex - 1, ey2, ex + 1, ey2, EYE)
     else:
-        rect(im, ex, ey2 - 1, ex + 1, ey2, EYE)
-        put(im, ex + 1, ey2 - 1, WHT)
+        rect(im, ex, ey2 - 1, ex + 1, ey2 - 1, EYE)
+        put(im, ex - 1, ey2, EYE)
+        put(im, ex + 2, ey2, EYE)
+        rect(im, ex, ey2 + 1, ex + 1, ey2 + 1, EYE)
+    if smile:
+        put(im, hx + 3, round(hy + 3 - tilt * 1.2), NOSE)
+        put(im, hx + 4, round(hy + 2 - tilt * 1.4), NOSE)
 
 
 def _legs(im, phase, walking=True):
@@ -247,10 +340,12 @@ def _legs(im, phase, walking=True):
         front, back, fh, bh = 16, 6, 4, 4
     rect(im, front, FEET - fh, front + 1, FEET, SHD)
     rect(im, back, FEET - bh, back + 1, FEET, SHD)
-    put(im, front, FEET - fh, WHT); put(im, back, FEET - bh, WHT)
+    put(im, front, FEET - fh, WHT)
+    put(im, back, FEET - bh, WHT)
 
 
-def hog_stand(tilt=0.0, blink=False, ear_up=False, phase=0.0, walking=False, bob=0):
+def hog_stand(tilt=0.0, blink=False, ear_up=False, smile=False,
+              phase=0.0, walking=False, bob=0):
     im = img(CW, CH)
     cx, cy = 11, 15 - bob
     rx, ry = 8.0, 6.0
@@ -258,10 +353,10 @@ def hog_stand(tilt=0.0, blink=False, ear_up=False, phase=0.0, walking=False, bob
         for x in range(int(cx - rx - 1), int(cx + rx + 2)):
             if ((x - cx) / rx) ** 2 + ((y - cy) / ry) ** 2 <= 1.0:
                 put(im, x, y, WHT)
-    _ridge(im, cx, cy, rx, ry, phase)
-    _head(im, 21, cy + 1, tilt, blink, ear_up)
+    _quill_set(im, cx, cy, rx, ry, phase)
+    _face(im, 20, cy - 1, tilt, blink, ear_up, smile)
     _legs(im, phase, walking)
-    for x in range(int(cx - rx), int(cx + rx) + 1):     # underside shading, curved
+    for x in range(int(cx - rx), int(cx + rx) + 1):
         for y in range(int(cy), int(cy + ry) + 1):
             d = ((x - cx) / rx) ** 2 + ((y - cy) / ry) ** 2
             if d <= 0.98 and im.getpixel((x, y))[:3] == WHT[:3]:
@@ -277,12 +372,14 @@ def hog_ball(spin):
     im = img(CW, CH)
     cx, cy, r = 15, FEET - 8, 8
     disc(im, cx, cy, r, WHT)
-    for i in range(12):
-        a = spin + 2 * math.pi * i / 12
-        bx, by = cx + math.cos(a) * r * 0.85, cy - math.sin(a) * r * 0.85
-        tx, ty = cx + math.cos(a) * (r + 3.4), cy - math.sin(a) * (r + 3.4)
-        _spike(im, bx, by, tx, ty, 1.7)
-    for y in range(cy - r, cy + r + 1):             # orbiting shade sells the spin
+    for i in range(10):
+        a = spin + 2 * math.pi * i / 10
+        bx, by = cx + math.cos(a) * r * 0.72, cy - math.sin(a) * r * 0.72
+        tx, ty = cx + math.cos(a + 0.34) * (r + 4.0), cy - math.sin(a + 0.34) * (r + 4.0)
+        d = math.hypot(tx - bx, ty - by) or 1
+        _spike(im, bx, by, tx + (tx - bx) / d * 1.2, ty + (ty - by) / d * 1.2, 2.6, OUTL)
+        _spike(im, bx, by, tx, ty, 1.9, WHT)
+    for y in range(cy - r, cy + r + 1):
         for x in range(cx - r, cx + r + 1):
             if (x - cx) ** 2 + (y - cy) ** 2 <= (r - 1) ** 2:
                 ang = math.atan2(cy - y, x - cx) - spin
@@ -295,19 +392,17 @@ def hog_ball(spin):
 
 
 def hog_uncurl(t):
-    """t 0..1 : the ball flattens out and the head and legs emerge."""
     im = img(CW, CH)
     cx = 12
-    rx = 8.0
-    ry = 8 - 2.0 * t
-    cy = FEET - 8 + t * 1.0
+    rx, ry = 8.0, 8.0 - 2.0 * t
+    cy = FEET - 8 + t
     for y in range(int(cy - ry - 1), int(cy + ry + 2)):
         for x in range(int(cx - rx - 1), int(cx + rx + 2)):
             if ((x - cx) / rx) ** 2 + ((y - cy) / ry) ** 2 <= 1.0:
                 put(im, x, y, WHT)
-    _ridge(im, cx, cy, rx, ry, phase=t * 3)
+    _quill_set(im, cx, cy, rx, ry, phase=t * 3)
     if t > 0.40:
-        _head(im, 21, cy + 1, 0, False, False)
+        _face(im, 20, cy - 1)
     if t > 0.62:
         _legs(im, 0, walking=False)
     outline(im)
@@ -318,18 +413,19 @@ def hog_sheet():
     """rows: 0 roll(12) 1 uncurl(6) 2 walk(8) 3 idle(8)"""
     cols = 12
     sheet = img(CW * cols, CH * 4)
-
-    for i in range(12):                                   # roll
+    for i in range(12):
         sheet.paste(hog_ball(-2 * math.pi * i / 12), (CW * i, 0))
-    for i in range(6):                                    # uncurl
+    for i in range(6):
         sheet.paste(hog_uncurl((i + 1) / 6), (CW * i, CH))
-    for i in range(8):                                    # walk
+    for i in range(8):
         ph = 2 * math.pi * i / 8
         sheet.paste(hog_stand(phase=ph, walking=True, bob=1 if i in (1, 2, 5, 6) else 0),
                     (CW * i, CH * 2))
-    idle = [                                              # look up, blink, ear twitch
-        dict(tilt=0.0), dict(tilt=0.35), dict(tilt=0.7), dict(tilt=0.7, ear_up=True),
-        dict(tilt=0.7, blink=True), dict(tilt=0.7), dict(tilt=0.7, ear_up=True), dict(tilt=0.35),
+    # look up at the card: tilt in, ear twitch, blink, smile, settle
+    idle = [
+        dict(tilt=0.0), dict(tilt=0.4), dict(tilt=0.8), dict(tilt=0.8, ear_up=True),
+        dict(tilt=0.8, blink=True), dict(tilt=0.8, smile=True),
+        dict(tilt=0.8, smile=True, ear_up=True), dict(tilt=0.4, smile=True),
     ]
     for i, kw in enumerate(idle):
         sheet.paste(hog_stand(**kw), (CW * i, CH * 3))
@@ -339,20 +435,17 @@ def hog_sheet():
 # ---------------------------------------------------------------- build
 if __name__ == "__main__":
     os.makedirs(OUT, exist_ok=True)
-    for name, im in (("px-ground", ground_tile()), ("px-props", props_sheet()),
-                     ("px-trees", tree_band()), ("px-hog", hog_sheet())):
+    for name, im in (("px-forest", forest_bg()), ("px-ground", ground_tile()),
+                     ("px-props", props_sheet()), ("px-hog", hog_sheet())):
         p = f"{OUT}/{name}.png"
         im.save(p, "PNG", optimize=True)
         print("  %-20s %dx%d  %d bytes" % (p, im.width, im.height, os.path.getsize(p)))
 
-    # contact sheet for eyeballing
     s = 6
-    prev = Image.new("RGBA", (CW * 12 * s, (CH * 4 + 34) * s), (14, 20, 16, 255))
+    prev = Image.new("RGBA", (CW * 12 * s, (CH * 4 + 26) * s), (14, 20, 16, 255))
     prev.paste(hog_sheet().resize((CW * 12 * s, CH * 4 * s), Image.NEAREST), (0, 0))
-    g = ground_tile().resize((GW * s, GH * s), Image.NEAREST)
-    for i in range(6):
-        prev.paste(g, (GW * s * i, CH * 4 * s), g)
-    pr = props_sheet().resize((32 * 4 * s, 24 * s), Image.NEAREST)
-    prev.paste(pr, (0, (CH * 4 + 24) * s), pr)
+    pr = props_sheet().resize((32 * PROP_N * s, 24 * s), Image.NEAREST)
+    prev.paste(pr, (0, CH * 4 * s), pr)
     prev.convert("RGB").save(f"{OUT}/_px-preview.png")
-    print("  preview -> public/_px-preview.png")
+    forest_bg().resize((FW * 3, FH * 3), Image.NEAREST).convert("RGB").save(f"{OUT}/_forest-preview.png")
+    print("  previews -> public/_px-preview.png, public/_forest-preview.png")

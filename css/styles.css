@@ -236,7 +236,7 @@ h3 { font-size: var(--step-1); }
 .hero-scene {
   --px-unit: 4px;                     /* one art pixel */
   --px-floor: calc(var(--px-unit) * 24);
-  --veil-x: linear-gradient(90deg, rgba(7, 10, 8, 0.95) 0%, rgba(7, 10, 8, 0.84) 34%, rgba(7, 10, 8, 0.44) 62%, rgba(7, 10, 8, 0.60) 100%);
+  --veil-x: linear-gradient(90deg, rgba(7, 10, 8, 0.88) 0%, rgba(7, 10, 8, 0.78) 34%, rgba(7, 10, 8, 0.44) 62%, rgba(7, 10, 8, 0.60) 100%);
   --veil-y: linear-gradient(180deg, rgba(7, 10, 8, 0.60) 0%, rgba(7, 10, 8, 0.10) 30%, rgba(7, 10, 8, 0.12) 56%, rgba(7, 10, 8, 0.66) 80%, rgba(7, 10, 8, 0.97) 100%);
   position: absolute;
   inset: 0;
@@ -246,12 +246,17 @@ h3 { font-size: var(--step-1); }
 }
 .hero-scene > * { position: absolute; }
 
+/* pixel forest: art is 384x200, anchored to the platform. Anything above it
+   is flat sky, and the plate's top row is exactly that colour, so it blends. */
 .scene-bg {
   inset: 0 0 calc(var(--px-floor) - var(--px-unit) * 2) 0;
-  background-image: url("../public/hero-forest.webp");
-  background-size: cover;
-  background-position: center center;
-  background-repeat: no-repeat;
+  background-color: #091110;
+  background-image: url("../public/px-forest.png");
+  background-size: calc(var(--px-unit) * 384) calc(var(--px-unit) * 200);
+  background-position: bottom left;
+  background-repeat: repeat-x;
+  image-rendering: pixelated;
+  will-change: transform;
 }
 /* the plate already carries an emerald glow, so dial the brand wash back */
 .hero-scene .hero-glow { opacity: 0.5; }
@@ -304,21 +309,9 @@ h3 { font-size: var(--step-1); }
   z-index: 2;
 }
 .px-world > * { position: absolute; }
-.px-ground, .px-trees, .px-props .prop, .hog-sprite {
+.px-ground, .px-props .prop, .hog-sprite {
   image-rendering: pixelated;
   image-rendering: crisp-edges;
-}
-
-/* pixel pines bridging the cinematic plate and the platform */
-.px-trees {
-  left: 0;
-  right: 0;
-  bottom: calc(var(--px-floor) - var(--px-unit) * 2);
-  height: calc(var(--px-unit) * 42);
-  background: url("../public/px-trees.png") repeat-x bottom left;
-  background-size: calc(var(--px-unit) * 96) calc(var(--px-unit) * 42);
-  opacity: 0.62;
-  will-change: transform;
 }
 
 .px-ground {
@@ -338,22 +331,19 @@ h3 { font-size: var(--step-1); }
   height: calc(var(--px-unit) * 24);
   margin-left: calc(var(--px-unit) * -16);
   background-image: url("../public/px-props.png");
-  background-size: calc(var(--px-unit) * 128) calc(var(--px-unit) * 24);
+  background-size: calc(var(--px-unit) * 192) calc(var(--px-unit) * 24);
   transform-origin: 50% 100%;
   animation: tuftSway 4.6s ease-in-out infinite;
 }
-.p-flower { background-position: 0 0; }
-.p-tuft   { background-position: calc(var(--px-unit) * -32) 0; animation-duration: 5.4s; animation-delay: -1.7s; }
-.p-block  { background-position: calc(var(--px-unit) * -64) 0; animation: blockBob 3.2s ease-in-out infinite;
-            bottom: calc(var(--px-floor) + var(--px-unit) * 16); }
-.p-bush   { background-position: calc(var(--px-unit) * -96) 0; animation-duration: 6.1s; animation-delay: -3.1s; }
+.p-tuft    { background-position: 0 0; animation-duration: 5.4s; }
+.p-flowerA { background-position: calc(var(--px-unit) * -32) 0; animation-duration: 4.8s; animation-delay: -1.7s; }
+.p-flowerB { background-position: calc(var(--px-unit) * -64) 0; animation-duration: 5.9s; animation-delay: -3.4s; }
+.p-bush    { background-position: calc(var(--px-unit) * -96) 0; animation-duration: 6.1s; animation-delay: -3.1s; }
+.p-mush    { background-position: calc(var(--px-unit) * -128) 0; animation: none; }
+.p-rock    { background-position: calc(var(--px-unit) * -160) 0; animation: none; }
 @keyframes tuftSway {
   0%, 100% { transform: rotate(-2.2deg); }
   50%      { transform: rotate(2.2deg); }
-}
-@keyframes blockBob {
-  0%, 100% { transform: translateY(0); }
-  50%      { transform: translateY(calc(var(--px-unit) * -1)); }
 }
 
 /* mascot: one sprite sheet, driven frame by frame from main.js */
@@ -943,9 +933,7 @@ h3 { font-size: var(--step-1); }
   .spot-inner { grid-template-columns: 128px 1fr; }
   /* lighter plate and no pollen on phones */
   .scene-particles { display: none; }
-  .scene-bg { background-image: url("../public/hero-forest-sm.webp"); }
   .hero-scene { --px-unit: 3px; }
-  .px-trees { opacity: 0.5; }
 }
 
 @media (prefers-reduced-motion: reduce) {

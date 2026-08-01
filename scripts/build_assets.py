@@ -59,9 +59,8 @@ def plate():
         print("  %-22s %dx%d  %d bytes" % (dst, r.width, r.height, os.path.getsize(dst)))
 
 
+# NOTE: the hero is now entirely pixel art from scripts/pixel_art.py.
+# plate()/sprite() and the kie.ai masters are kept only so the earlier
+# photoreal forest and 3D mascot can be rebuilt if we ever go back to them.
 if __name__ == "__main__":
-    print("forest plate:")
-    plate()
-    # The 3D mascot sprites are superseded by the 16-bit sheet from
-    # scripts/pixel_art.py. sprite() and the masters are kept so the
-    # photoreal character can be rebuilt if we ever go back to it.
+    print("nothing to build - the hero uses scripts/pixel_art.py")
