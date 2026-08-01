@@ -211,7 +211,7 @@ h3 { font-size: var(--step-1); }
 .hero {
   position: relative;
   overflow: hidden;
-  padding-block: clamp(56px, 7vw, 112px) clamp(124px, 14.5vw, 216px);
+  padding-block: clamp(56px, 7vw, 112px) clamp(152px, 15.5vw, 226px);
   background: linear-gradient(180deg, #070A08 0%, #0A0F0B 45%, #0C120E 100%);
 }
 .hero-glow {
@@ -234,6 +234,10 @@ h3 { font-size: var(--step-1); }
    Rendered forest plate + 3D mascot sprites (generated via kie.ai).
    Motion is transform/opacity only and pauses while off-screen. */
 .hero-scene {
+  --px-unit: 4px;                     /* one art pixel */
+  --px-floor: calc(var(--px-unit) * 24);
+  --veil-x: linear-gradient(90deg, rgba(7, 10, 8, 0.95) 0%, rgba(7, 10, 8, 0.84) 34%, rgba(7, 10, 8, 0.44) 62%, rgba(7, 10, 8, 0.60) 100%);
+  --veil-y: linear-gradient(180deg, rgba(7, 10, 8, 0.60) 0%, rgba(7, 10, 8, 0.10) 30%, rgba(7, 10, 8, 0.12) 56%, rgba(7, 10, 8, 0.66) 80%, rgba(7, 10, 8, 0.97) 100%);
   position: absolute;
   inset: 0;
   z-index: 0;
@@ -242,144 +246,131 @@ h3 { font-size: var(--step-1); }
 }
 .hero-scene > * { position: absolute; }
 
-.scene-bg, .scene-grass {
-  inset: 0;
+.scene-bg {
+  inset: 0 0 calc(var(--px-floor) - var(--px-unit) * 2) 0;
   background-image: url("../public/hero-forest.webp");
   background-size: cover;
   background-position: center center;
   background-repeat: no-repeat;
 }
-/* The same plate, clipped to its foreground blades and stacked above the
-   mascot, so the hedgehog is genuinely occluded by the grass it runs through.
-   It carries the veil gradients too, so the clipped strip matches the veiled
-   background exactly and no seam shows at the cut. */
-.scene-grass {
-  z-index: 2;
-  clip-path: inset(91% 0 0 0);
-  background-image: var(--veil-x), var(--veil-y), url("../public/hero-forest.webp");
-  background-size: auto, auto, cover;
-  background-position: center, center, center center;
-}
-
 /* the plate already carries an emerald glow, so dial the brand wash back */
 .hero-scene .hero-glow { opacity: 0.5; }
 
 /* keeps the white and green UI readable over the artwork */
-.hero-scene {
-  --veil-x: linear-gradient(90deg, rgba(7, 10, 8, 0.95) 0%, rgba(7, 10, 8, 0.84) 34%, rgba(7, 10, 8, 0.44) 62%, rgba(7, 10, 8, 0.60) 100%);
-  --veil-y: linear-gradient(180deg, rgba(7, 10, 8, 0.60) 0%, rgba(7, 10, 8, 0.10) 32%, rgba(7, 10, 8, 0.10) 62%, rgba(7, 10, 8, 0.55) 100%);
-}
 .scene-veil {
   inset: 0;
   background: var(--veil-x), var(--veil-y);
 }
 
-/* drifting pollen over the plate */
-.scene-particles { inset: 0; }
+/* fireflies: square pixels rather than dots, to rhyme with the 16-bit floor */
+.scene-particles { inset: 0; bottom: var(--px-floor); }
 .scene-particles span {
   position: absolute;
-  width: 3px;
-  height: 3px;
-  border-radius: 50%;
-  background: rgba(190, 232, 202, 0.5);
+  width: 4px;
+  height: 4px;
+  background: rgba(226, 245, 150, 0.85);
+  box-shadow: 0 0 6px rgba(198, 240, 120, 0.55);
   opacity: 0;
-  animation: motePath 14s linear infinite;
+  animation: motePath 16s linear infinite;
 }
-.scene-particles span:nth-child(1)  { left: 6%;  bottom: 12%; animation-duration: 15s; animation-delay: -1s; }
-.scene-particles span:nth-child(2)  { left: 14%; bottom: 20%; animation-duration: 12s; animation-delay: -5s; width: 2px; height: 2px; }
-.scene-particles span:nth-child(3)  { left: 23%; bottom: 8%;  animation-duration: 17s; animation-delay: -9s; }
-.scene-particles span:nth-child(4)  { left: 31%; bottom: 26%; animation-duration: 13s; animation-delay: -3s; width: 2px; height: 2px; }
-.scene-particles span:nth-child(5)  { left: 42%; bottom: 14%; animation-duration: 16s; animation-delay: -12s; }
-.scene-particles span:nth-child(6)  { left: 51%; bottom: 22%; animation-duration: 14s; animation-delay: -7s; width: 2px; height: 2px; }
-.scene-particles span:nth-child(7)  { left: 59%; bottom: 10%; animation-duration: 18s; animation-delay: -2s; }
-.scene-particles span:nth-child(8)  { left: 68%; bottom: 24%; animation-duration: 12s; animation-delay: -11s; width: 2px; height: 2px; }
-.scene-particles span:nth-child(9)  { left: 76%; bottom: 16%; animation-duration: 15s; animation-delay: -6s; }
-.scene-particles span:nth-child(10) { left: 84%; bottom: 28%; animation-duration: 17s; animation-delay: -14s; width: 2px; height: 2px; }
-.scene-particles span:nth-child(11) { left: 91%; bottom: 11%; animation-duration: 13s; animation-delay: -4s; }
-.scene-particles span:nth-child(12) { left: 97%; bottom: 21%; animation-duration: 16s; animation-delay: -8s; width: 2px; height: 2px; }
+.scene-particles span:nth-child(1)  { left: 6%;  bottom: 6%;  animation-duration: 17s; animation-delay: -1s; }
+.scene-particles span:nth-child(2)  { left: 14%; bottom: 16%; animation-duration: 13s; animation-delay: -5s; }
+.scene-particles span:nth-child(3)  { left: 23%; bottom: 3%;  animation-duration: 19s; animation-delay: -9s; }
+.scene-particles span:nth-child(4)  { left: 31%; bottom: 22%; animation-duration: 14s; animation-delay: -3s; }
+.scene-particles span:nth-child(5)  { left: 42%; bottom: 9%;  animation-duration: 18s; animation-delay: -12s; }
+.scene-particles span:nth-child(6)  { left: 51%; bottom: 18%; animation-duration: 15s; animation-delay: -7s; }
+.scene-particles span:nth-child(7)  { left: 59%; bottom: 5%;  animation-duration: 20s; animation-delay: -2s; }
+.scene-particles span:nth-child(8)  { left: 68%; bottom: 20%; animation-duration: 13s; animation-delay: -11s; }
+.scene-particles span:nth-child(9)  { left: 76%; bottom: 11%; animation-duration: 16s; animation-delay: -6s; }
+.scene-particles span:nth-child(10) { left: 84%; bottom: 24%; animation-duration: 18s; animation-delay: -14s; }
+.scene-particles span:nth-child(11) { left: 91%; bottom: 7%;  animation-duration: 14s; animation-delay: -4s; }
+.scene-particles span:nth-child(12) { left: 97%; bottom: 17%; animation-duration: 17s; animation-delay: -8s; }
 @keyframes motePath {
   0%   { opacity: 0; transform: translate3d(0, 0, 0); }
-  12%  { opacity: 0.8; }
-  70%  { opacity: 0.55; }
-  100% { opacity: 0; transform: translate3d(34px, -190px, 0); }
+  10%  { opacity: 0.9; }
+  50%  { opacity: 0.35; }
+  75%  { opacity: 0.85; }
+  100% { opacity: 0; transform: translate3d(38px, -170px, 0); }
 }
 
-/* ============ hedgehog mascot ============
-   ~5.2s sequence on an 18s loop: roll in, uncurl, look around, curl, roll off. */
-.hero-hog {
+/* ============ 16-bit floor ============
+   A tribute layer along the base of the hero: tiling SNES-style platform,
+   props and a sprite-sheet mascot. Everything above it stays modern. */
+.px-world {
   left: 0;
-  bottom: clamp(38px, 4.2vw, 60px);
-  width: clamp(78px, 9vw, 130px);
-  height: clamp(78px, 9vw, 130px);
-  z-index: 1;
-  display: grid;
+  right: 0;
+  bottom: 0;
+  height: calc(var(--px-floor) + var(--px-unit) * 60);
+  z-index: 2;
+}
+.px-world > * { position: absolute; }
+.px-ground, .px-trees, .px-props .prop, .hog-sprite {
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+}
+
+/* pixel pines bridging the cinematic plate and the platform */
+.px-trees {
+  left: 0;
+  right: 0;
+  bottom: calc(var(--px-floor) - var(--px-unit) * 2);
+  height: calc(var(--px-unit) * 42);
+  background: url("../public/px-trees.png") repeat-x bottom left;
+  background-size: calc(var(--px-unit) * 96) calc(var(--px-unit) * 42);
+  opacity: 0.62;
+  will-change: transform;
+}
+
+.px-ground {
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: var(--px-floor);
+  background: url("../public/px-ground.png") repeat-x top left;
+  background-size: calc(var(--px-unit) * 64) var(--px-floor);
+}
+
+.px-props { left: 0; right: 0; bottom: 0; height: var(--px-floor); }
+.px-props .prop {
+  position: absolute;
+  bottom: calc(var(--px-floor) - var(--px-unit) * 6);
+  width: calc(var(--px-unit) * 32);
+  height: calc(var(--px-unit) * 24);
+  margin-left: calc(var(--px-unit) * -16);
+  background-image: url("../public/px-props.png");
+  background-size: calc(var(--px-unit) * 128) calc(var(--px-unit) * 24);
+  transform-origin: 50% 100%;
+  animation: tuftSway 4.6s ease-in-out infinite;
+}
+.p-flower { background-position: 0 0; }
+.p-tuft   { background-position: calc(var(--px-unit) * -32) 0; animation-duration: 5.4s; animation-delay: -1.7s; }
+.p-block  { background-position: calc(var(--px-unit) * -64) 0; animation: blockBob 3.2s ease-in-out infinite;
+            bottom: calc(var(--px-floor) + var(--px-unit) * 16); }
+.p-bush   { background-position: calc(var(--px-unit) * -96) 0; animation-duration: 6.1s; animation-delay: -3.1s; }
+@keyframes tuftSway {
+  0%, 100% { transform: rotate(-2.2deg); }
+  50%      { transform: rotate(2.2deg); }
+}
+@keyframes blockBob {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(calc(var(--px-unit) * -1)); }
+}
+
+/* mascot: one sprite sheet, driven frame by frame from main.js */
+.hog-sprite {
+  left: 0;
+  bottom: calc(var(--px-floor) - var(--px-unit) * 5);
+  width: calc(var(--px-unit) * 32);
+  height: calc(var(--px-unit) * 26);
+  margin-left: calc(var(--px-unit) * -16);
+  background-image: url("../public/px-hog.png");
+  background-size: calc(var(--px-unit) * 384) calc(var(--px-unit) * 104);
+  background-repeat: no-repeat;
   opacity: 0;
-  animation: hogTravel 18s infinite, hogFade 18s infinite;
-}
-.hero-hog > *,
-.hero-hog::before {
-  grid-area: 1 / 1;
-  align-self: end;
-  justify-self: center;
-}
-.hero-hog img { height: 100%; width: auto; }
-.hero-hog::before {          /* contact shadow so it sits in the grass */
-  content: "";
-  width: 125%;
-  height: 20%;
-  border-radius: 50%;
-  background: radial-gradient(50% 50% at 50% 50%, rgba(0, 0, 0, 0.55), transparent 72%);
-  transform: translateY(30%);
-}
-.hog-ball-wrap { height: 100%; animation: hogBallShow 18s infinite; }
-.hog-ball { animation: hogSpin 18s infinite; }
-.hog-stand { opacity: 0; transform-origin: 50% 100%; animation: hogStandShow 18s infinite; }
-.hog-look  { opacity: 0; animation: hogLookShow 18s infinite; }
-
-@keyframes hogTravel {
-  0%   { transform: translate3d(-18vw, 0, 0); animation-timing-function: cubic-bezier(.16,.72,.3,1); }
-  10%  { transform: translate3d(50vw, 0, 0); }
-  20%  { transform: translate3d(50vw, 0, 0); animation-timing-function: cubic-bezier(.62,0,.86,.36); }
-  29%  { transform: translate3d(122vw, 0, 0); }
-  100% { transform: translate3d(122vw, 0, 0); }
-}
-@keyframes hogFade {
-  0%, 0.6%    { opacity: 0; }
-  2%, 27.6%   { opacity: 1; }
-  29.2%, 100% { opacity: 0; }
-}
-@keyframes hogSpin {
-  0%   { transform: rotate(0deg); animation-timing-function: cubic-bezier(.16,.72,.3,1); }
-  10%  { transform: rotate(1080deg); }
-  20%  { transform: rotate(1080deg); animation-timing-function: cubic-bezier(.62,0,.86,.36); }
-  29%  { transform: rotate(2160deg); }
-  100% { transform: rotate(2160deg); }
-}
-@keyframes hogBallShow {
-  0%, 9.4%    { opacity: 1; transform: scale(1); }
-  10.4%       { opacity: 0; transform: scale(0.86); }
-  18.6%       { opacity: 0; transform: scale(0.86); }
-  19.6%, 100% { opacity: 1; transform: scale(1); }
-}
-@keyframes hogStandShow {
-  0%, 9.6%    { opacity: 0; transform: scale(0.6, 1.2); }
-  11%         { opacity: 1; transform: scale(1.06, 0.94); }
-  12.2%       { opacity: 1; transform: scale(1, 1); }
-  14.2%       { opacity: 1; transform: scale(1, 1); }
-  15.2%       { opacity: 0; transform: scale(1, 1); }
-  16.2%       { opacity: 0; transform: scale(1, 1); }
-  17.2%       { opacity: 1; transform: scale(1, 1); }
-  18.4%       { opacity: 1; transform: scale(1, 1); }
-  19.4%, 100% { opacity: 0; transform: scale(0.6, 1.2); }
-}
-@keyframes hogLookShow {
-  0%, 14.2%   { opacity: 0; }
-  15.2%       { opacity: 1; }
-  16.2%       { opacity: 1; }
-  17.2%, 100% { opacity: 0; }
+  will-change: transform;
 }
 
-/* pause the whole scene while the hero is off-screen */
+/* pause everything while the hero is off-screen */
 .hero-scene.is-paused *,
 .hero-scene.is-paused { animation-play-state: paused; }
 .eyebrow {
@@ -923,7 +914,7 @@ h3 { font-size: var(--step-1); }
     width: 100%;
     max-width: 430px;
     /* drop the card toward the grass line so the mascot passes behind it */
-    transform: translateY(clamp(56px, 10.5vw, 148px));
+    transform: translateY(clamp(20px, 4.4vw, 64px));
   }
   .spot-inner { grid-template-columns: 148px 1fr; }
 }
@@ -952,13 +943,15 @@ h3 { font-size: var(--step-1); }
   .spot-inner { grid-template-columns: 128px 1fr; }
   /* lighter plate and no pollen on phones */
   .scene-particles { display: none; }
-  .scene-bg, .scene-grass { background-image: url("../public/hero-forest-sm.webp"); }
-  .scene-grass { clip-path: inset(93% 0 0 0); }
+  .scene-bg { background-image: url("../public/hero-forest-sm.webp"); }
+  .hero-scene { --px-unit: 3px; }
+  .px-trees { opacity: 0.5; }
 }
 
 @media (prefers-reduced-motion: reduce) {
   /* keep the forest plate, remove everything that moves */
-  .hero-hog, .scene-particles { display: none; }
+  .hog-sprite, .scene-particles { display: none; }
+  .px-props .prop { animation: none; }
 }
 
 @media (prefers-reduced-motion: reduce) {

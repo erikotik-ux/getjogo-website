@@ -62,7 +62,6 @@ def plate():
 if __name__ == "__main__":
     print("forest plate:")
     plate()
-    print("mascot sprites:")
-    sprite("hog-ball", square=True)
-    sprite("hog-stand")
-    sprite("hog-look")
+    # The 3D mascot sprites are superseded by the 16-bit sheet from
+    # scripts/pixel_art.py. sprite() and the masters are kept so the
+    # photoreal character can be rebuilt if we ever go back to it.

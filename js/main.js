@@ -130,12 +130,101 @@ navMenu.addEventListener("click", (e) => {
 
 // ============ hero scene: pause while off-screen ============
 const heroScene = document.querySelector(".hero-scene");
+let sceneVisible = true;
 if (heroScene && "IntersectionObserver" in window) {
   const sceneIO = new IntersectionObserver(
-    ([entry]) => heroScene.classList.toggle("is-paused", !entry.isIntersecting),
+    ([entry]) => {
+      sceneVisible = entry.isIntersecting;
+      heroScene.classList.toggle("is-paused", !sceneVisible);
+    },
     { threshold: 0 }
   );
   sceneIO.observe(document.querySelector(".hero"));
+}
+
+// ============ 16-bit mascot ============
+// One sprite sheet, four rows: 0 roll(12) 1 uncurl(6) 2 walk(8) 3 idle(8).
+// A phase list drives both the frame and the position, so the choreography
+// stays readable: roll in, uncurl, walk under the Deal card, look up and
+// blink, curl back up, roll off. Runs once per LOOP_MS.
+const hogSprite = document.querySelector(".hog-sprite");
+if (hogSprite && !window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+  const LOOP_MS = 19000;
+  const easeOut = (t) => 1 - Math.pow(1 - t, 3);
+  const easeIn = (t) => t * t * t;
+
+  const PHASES = [
+    { dur: 1800, row: 0, fps: 22, from: -0.12, to: 0.30, ease: easeOut },
+    { dur: 420,  row: 1, fps: 0,  from: 0.30,  to: 0.30, ramp: 6 },
+    { dur: 2300, row: 2, fps: 12, from: 0.30,  to: 0.68 },
+    // look up at the card, hold, blink, twitch an ear, settle
+    { dur: 3000, row: 3, fps: 0,  from: 0.68,  to: 0.68,
+      script: [0, 1, 2, 2, 2, 3, 2, 4, 2, 2, 6, 2, 2, 5, 2, 7] },
+    { dur: 400,  row: 1, fps: 0,  from: 0.68,  to: 0.68, ramp: 6, reverse: true },
+    { dur: 1700, row: 0, fps: 22, from: 0.68,  to: 1.14, ease: easeIn },
+  ];
+  const ACTIVE = PHASES.reduce((n, p) => n + p.dur, 0);
+
+  const unit = () => parseFloat(getComputedStyle(heroScene).getPropertyValue("--px-unit")) || 4;
+  let t0 = performance.now();
+  let lastCell = "";
+
+  function frame(now) {
+    requestAnimationFrame(frame);
+    if (!sceneVisible) { t0 = now; return; }
+
+    let t = (now - t0) % LOOP_MS;
+    if (t > ACTIVE) {                      // resting between passes
+      if (hogSprite.style.opacity !== "0") hogSprite.style.opacity = "0";
+      return;
+    }
+    if (hogSprite.style.opacity !== "1") hogSprite.style.opacity = "1";
+
+    let ph = PHASES[0];
+    for (const p of PHASES) {
+      if (t < p.dur) { ph = p; break; }
+      t -= p.dur;
+    }
+    const prog = t / ph.dur;
+
+    let col;
+    if (ph.script) {
+      col = ph.script[Math.min(ph.script.length - 1, Math.floor(prog * ph.script.length))];
+    } else if (ph.ramp) {
+      const i = Math.min(ph.ramp - 1, Math.floor(prog * ph.ramp));
+      col = ph.reverse ? ph.ramp - 1 - i : i;
+    } else {
+      const n = ph.row === 0 ? 12 : 8;
+      col = Math.floor((t / 1000) * ph.fps) % n;
+    }
+
+    const u = unit();
+    const cell = `${-col * 32 * u}px ${-ph.row * 26 * u}px`;
+    if (cell !== lastCell) { hogSprite.style.backgroundPosition = cell; lastCell = cell; }
+
+    const e = ph.ease ? ph.ease(prog) : prog;
+    const x = (ph.from + (ph.to - ph.from) * e) * heroScene.clientWidth;
+    hogSprite.style.transform = `translate3d(${Math.round(x)}px,0,0)`;
+  }
+  requestAnimationFrame(frame);
+}
+
+// ============ gentle parallax on the hero layers ============
+const pxTrees = document.querySelector(".px-trees");
+const sceneBg = document.querySelector(".scene-bg");
+if (pxTrees && sceneBg && !window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+  let queued = false;
+  addEventListener("scroll", () => {
+    if (queued) return;
+    queued = true;
+    requestAnimationFrame(() => {
+      queued = false;
+      const y = window.scrollY;
+      if (y > window.innerHeight) return;
+      sceneBg.style.transform = `translate3d(0,${(y * 0.14).toFixed(1)}px,0)`;
+      pxTrees.style.transform = `translate3d(0,${(y * 0.06).toFixed(1)}px,0)`;
+    });
+  }, { passive: true });
 }
 
 // ============ scroll reveal ============
