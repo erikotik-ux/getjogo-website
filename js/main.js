@@ -164,10 +164,26 @@ if (hogSprite && !window.matchMedia("(prefers-reduced-motion: reduce)").matches)
     { dur: 1500, row: 0, fps: 28, from: 0.68,  to: 1.16, ease: easeIn },
   ];
   const ACTIVE = PHASES.reduce((n, p) => n + p.dur, 0);
+  const LOOK_PHASE = PHASES[3];
 
   const unit = () => parseFloat(getComputedStyle(heroScene).getPropertyValue("--px-unit")) || 4;
+  const dealCard = document.querySelector(".spot-card");
+  const buyBtn = dealCard && dealCard.querySelector(".g-buy");
   let t0 = performance.now();
   let lastCell = "";
+  let noticing = false;
+
+  // the card reacts while the mascot is stopped underneath looking up
+  function setNoticed(on) {
+    if (on === noticing) return;
+    noticing = on;
+    if (dealCard) dealCard.classList.toggle("is-noticed", on);
+    if (on && buyBtn) {
+      buyBtn.classList.remove("is-pulsing");
+      void buyBtn.offsetWidth;                 // restart the one-shot pulse
+      buyBtn.classList.add("is-pulsing");
+    }
+  }
 
   function frame(now) {
     requestAnimationFrame(frame);
@@ -176,6 +192,7 @@ if (hogSprite && !window.matchMedia("(prefers-reduced-motion: reduce)").matches)
     let t = (now - t0) % LOOP_MS;
     if (t > ACTIVE) {                      // resting between passes
       if (hogSprite.style.opacity !== "0") hogSprite.style.opacity = "0";
+      setNoticed(false);
       return;
     }
     if (hogSprite.style.opacity !== "1") hogSprite.style.opacity = "1";
@@ -186,6 +203,7 @@ if (hogSprite && !window.matchMedia("(prefers-reduced-motion: reduce)").matches)
       t -= p.dur;
     }
     const prog = t / ph.dur;
+    setNoticed(ph === LOOK_PHASE);
 
     let col;
     if (ph.script) {
@@ -210,8 +228,12 @@ if (hogSprite && !window.matchMedia("(prefers-reduced-motion: reduce)").matches)
 }
 
 // ============ gentle parallax on the hero layers ============
-const sceneBg = document.querySelector(".scene-bg");
-if (sceneBg && !window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+const parallaxLayers = [
+  [document.querySelector(".scene-sky"), 0.06],
+  [document.querySelector(".scene-clouds"), 0.10],
+  [document.querySelector(".scene-pines"), 0.17],
+].filter(([el]) => el);
+if (parallaxLayers.length && !window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
   let queued = false;
   addEventListener("scroll", () => {
     if (queued) return;
@@ -220,7 +242,9 @@ if (sceneBg && !window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
       queued = false;
       const y = window.scrollY;
       if (y > window.innerHeight) return;
-      sceneBg.style.transform = `translate3d(0,${(y * 0.12).toFixed(1)}px,0)`;
+      for (const [el, rate] of parallaxLayers) {
+        el.style.transform = `translate3d(0,${(y * rate).toFixed(1)}px,0)`;
+      }
     });
   }, { passive: true });
 }

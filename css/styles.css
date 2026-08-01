@@ -236,8 +236,8 @@ h3 { font-size: var(--step-1); }
 .hero-scene {
   --px-unit: 4px;                     /* one art pixel */
   --px-floor: calc(var(--px-unit) * 24);
-  --veil-x: linear-gradient(90deg, rgba(7, 10, 8, 0.88) 0%, rgba(7, 10, 8, 0.78) 34%, rgba(7, 10, 8, 0.44) 62%, rgba(7, 10, 8, 0.60) 100%);
-  --veil-y: linear-gradient(180deg, rgba(7, 10, 8, 0.60) 0%, rgba(7, 10, 8, 0.10) 30%, rgba(7, 10, 8, 0.12) 56%, rgba(7, 10, 8, 0.66) 80%, rgba(7, 10, 8, 0.97) 100%);
+  --veil-x: linear-gradient(90deg, rgba(7, 12, 16, 0.74) 0%, rgba(7, 12, 16, 0.60) 34%, rgba(7, 12, 16, 0.26) 62%, rgba(7, 12, 16, 0.42) 100%);
+  --veil-y: linear-gradient(180deg, rgba(7, 12, 16, 0.48) 0%, rgba(7, 12, 16, 0.10) 30%, rgba(7, 12, 16, 0.12) 56%, rgba(7, 12, 16, 0.34) 82%, rgba(7, 12, 16, 0.60) 100%);
   position: absolute;
   inset: 0;
   z-index: 0;
@@ -246,18 +246,44 @@ h3 { font-size: var(--step-1); }
 }
 .hero-scene > * { position: absolute; }
 
-/* pixel forest: art is 384x200, anchored to the platform. Anything above it
-   is flat sky, and the plate's top row is exactly that colour, so it blends. */
-.scene-bg {
-  inset: 0 0 calc(var(--px-floor) - var(--px-unit) * 2) 0;
-  background-color: #091110;
-  background-image: url("../public/px-forest.png");
-  background-size: calc(var(--px-unit) * 384) calc(var(--px-unit) * 200);
-  background-position: bottom left;
-  background-repeat: repeat-x;
+/* Layered SNES landscape: sky+mountains+hills, drifting clouds, near pines.
+   Each tiles horizontally and parallaxes at its own rate. */
+.scene-sky, .scene-clouds, .scene-pines {
   image-rendering: pixelated;
+  background-repeat: repeat-x;
   will-change: transform;
 }
+.scene-sky {
+  inset: 0 0 calc(var(--px-floor) - var(--px-unit) * 2) 0;
+  background-color: #172644;                 /* matches the plate's top row */
+  background-image: url("../public/px-sky.png");
+  background-size: calc(var(--px-unit) * 384) calc(var(--px-unit) * 200);
+  background-position: bottom left;
+}
+.scene-clouds {
+  left: 0;
+  right: 0;
+  bottom: calc(var(--px-floor) + var(--px-unit) * 112);
+  height: calc(var(--px-unit) * 72);
+  background-image: url("../public/px-clouds.png");
+  background-size: calc(var(--px-unit) * 320) calc(var(--px-unit) * 72);
+  opacity: 0.7;
+  animation: cloudDrift 120s linear infinite;
+}
+@keyframes cloudDrift {
+  from { background-position-x: 0; }
+  to   { background-position-x: calc(var(--px-unit) * 320); }
+}
+.scene-pines {
+  left: 0;
+  right: 0;
+  bottom: calc(var(--px-floor) - var(--px-unit) * 3);
+  height: calc(var(--px-unit) * 84);
+  background-image: url("../public/px-pines.png");
+  background-size: calc(var(--px-unit) * 192) calc(var(--px-unit) * 84);
+  background-position: bottom left;
+}
+
 /* the plate already carries an emerald glow, so dial the brand wash back */
 .hero-scene .hero-glow { opacity: 0.5; }
 
@@ -406,11 +432,55 @@ h3 { font-size: var(--step-1); }
 /* hero spotlight */
 .hero-visual { display: none; }
 .spot-card {
-  background: rgba(21, 26, 22, 0.88);
-  border: 1px solid var(--border);
+  position: relative;
+  background: rgba(18, 24, 20, 0.92);
+  border: 1px solid rgba(255, 255, 255, 0.12);
   border-radius: var(--radius-lg);
   padding: var(--space-4);
-  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.45);
+  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.5);
+  transition: transform 420ms var(--ease), box-shadow 420ms var(--ease),
+              border-color 420ms var(--ease);
+}
+/* a quiet inner rule + four pixel corner ticks: a nod to the 16-bit world
+   without turning a premium UI panel into a pixel-art sprite */
+.spot-card::before,
+.spot-card::after {
+  content: "";
+  position: absolute;
+  pointer-events: none;
+}
+.spot-card::before {
+  inset: 7px;
+  border: 1px solid rgba(95, 190, 123, 0.14);
+  border-radius: calc(var(--radius-lg) - 7px);
+}
+.spot-card::after {
+  inset: 11px;
+  background-image:
+    linear-gradient(var(--accent-bright), var(--accent-bright)),
+    linear-gradient(var(--accent-bright), var(--accent-bright)),
+    linear-gradient(var(--accent-bright), var(--accent-bright)),
+    linear-gradient(var(--accent-bright), var(--accent-bright));
+  background-size: 4px 4px;
+  background-repeat: no-repeat;
+  background-position: left top, right top, left bottom, right bottom;
+  opacity: 0.5;
+  transition: opacity 420ms var(--ease);
+}
+/* the mascot has stopped underneath and looked up */
+.spot-card.is-noticed {
+  transform: translateY(-6px);
+  border-color: rgba(95, 190, 123, 0.42);
+  box-shadow: 0 30px 70px rgba(0, 0, 0, 0.5),
+              0 0 0 1px rgba(95, 190, 123, 0.16),
+              0 0 34px rgba(95, 190, 123, 0.22);
+}
+.spot-card.is-noticed::after { opacity: 1; }
+.g-buy.is-pulsing { animation: buyPulse 900ms var(--ease) 1; }
+@keyframes buyPulse {
+  0%   { transform: scale(1); box-shadow: 0 0 0 0 rgba(95, 190, 123, 0.5); }
+  45%  { transform: scale(1.035); box-shadow: 0 0 0 8px rgba(95, 190, 123, 0); }
+  100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(95, 190, 123, 0); }
 }
 .spot-label {
   display: inline-flex;

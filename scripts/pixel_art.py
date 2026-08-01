@@ -23,9 +23,9 @@ SHD2 = (168, 182, 172, 255)
 EYE = (18, 26, 21, 255)
 NOSE = (34, 44, 38, 255)
 PINK = (233, 170, 170, 255)
-LEG = (178, 191, 182, 255)
-LEG_FAR = (146, 160, 151, 255)
-FOOT = (126, 140, 131, 255)
+LEG = (255, 255, 255, 255)        # near leg reads as body, not a grey stick
+LEG_FAR = (196, 208, 199, 255)    # far leg only a shade back
+FOOT = (176, 190, 180, 255)
 
 # ground
 G_LIT = (139, 219, 94, 255)
@@ -213,72 +213,108 @@ def props_sheet():
     return im
 
 
-# ---------------------------------------------------------------- forest
-FW, FH = 384, 200        # tiles horizontally; sky above is filled by CSS
+# ---------------------------------------------------------------- landscape
+# Three tiling layers so the hero can parallax them: sky+land, clouds, pines.
+SW, SH = 384, 200
+SKY_TOP = (23, 38, 68)
+SKY_MID = (48, 84, 118)
+SKY_LOW = (98, 140, 158)
+SKY_GLOW = (156, 168, 150)
+MTN_FAR = (88, 114, 148, 255)
+MTN_CAP = (168, 190, 205, 255)
+MTN_NEAR = (68, 92, 124, 255)
+HILL_A = (70, 128, 92, 255)
+HILL_B = (54, 104, 74, 255)
+HILL_C = (40, 82, 60, 255)
+HILL_LIT = (108, 176, 116, 255)
+CLOUD = (168, 192, 210, 255)
+CLOUD_LIT = (208, 226, 238, 255)
+PINE_A = (34, 76, 55, 255)
+PINE_B = (24, 58, 42, 255)
+PINE_TRUNK = (38, 34, 26, 255)
 
 
-def _pine(im, x, base, h, col, trunk=None):
-    """Stepped pixel pine: tiers of decreasing width."""
-    tiers = max(3, h // 12)
-    for t in range(tiers):
-        y0 = base - round(h * (t + 1) / tiers)
-        y1 = base - round(h * t / tiers)
-        for y in range(y0, y1 + 1):
-            spread = (y - y0) / max(1, (y1 - y0))
-            half = round((0.16 * h / tiers) * (1 + spread * 2.4) + t * 0.5)
-            for dx in range(-half, half + 1):
-                put(im, (x + dx) % im.width, y, col)
-    if trunk:
-        for y in range(base - 2, base + 4):
-            for x2 in range(x - 1, x + 2):
-                put(im, x2 % im.width, y, trunk)
+def _vgrad(im, y0, y1, top, bot):
+    for y in range(y0, y1):
+        t = (y - y0) / max(1, y1 - y0 - 1)
+        rect(im, 0, y, im.width - 1, y,
+             tuple(round(top[i] + (bot[i] - top[i]) * t) for i in range(3)) + (255,))
 
 
-def forest_bg():
-    im = img(FW, FH)
-    for y in range(FH):                       # night sky
-        t = y / (FH - 1)
-        c = tuple(round(SKY_HI[i] + (SKY_LO[i] - SKY_HI[i]) * t) for i in range(3))
-        rect(im, 0, y, FW - 1, y, c + (255,))
+def _ridge(im, base, amp, freq, phase, col, cap=None):
+    """One rolling landform spanning the tile, seamless by construction."""
+    for x in range(im.width):
+        t = 2 * math.pi * x / im.width
+        h = amp * (0.6 * math.sin(t * freq + phase)
+                   + 0.4 * math.sin(t * freq * 2 + phase * 1.7))
+        top = int(base - amp - h)
+        rect(im, x, top, x, im.height - 1, col)
+        if cap and h > amp * 0.45:
+            rect(im, x, top, x, top + 1, cap)
 
-    for i in range(46):                       # stars
+
+def sky_layer():
+    im = img(SW, SH)
+    _vgrad(im, 0, 96, SKY_TOP, SKY_MID)
+    _vgrad(im, 96, 140, SKY_MID, SKY_LOW)
+    _vgrad(im, 140, 152, SKY_LOW, SKY_GLOW)
+    for i in range(30):                                   # a few high stars
         n = (math.sin(i * 91.7) * 43758.5453) % 1
         m = (math.sin(i * 27.3 + 4.1) * 24634.6345) % 1
-        put(im, round(n * FW), round(m * 78), STAR)
+        put(im, round(n * SW), round(m * 70), (198, 216, 228, 255))
 
-    mx, my = 306, 34                          # moon with a soft glow
-    for r in range(16, 9, -1):
-        a = int(26 * (17 - r) / 7)
-        for y in range(my - r, my + r + 1):
-            for x in range(mx - r, mx + r + 1):
-                if (x - mx) ** 2 + (y - my) ** 2 <= r * r:
-                    px = im.getpixel((x % FW, y))
-                    im.putpixel((x % FW, y), tuple(
-                        min(255, px[j] + (MOON_GLOW[j] - px[j]) * a // 255) for j in range(3)) + (255,))
-    disc(im, mx, my, 9, MOON)
-    disc(im, mx - 3, my - 3, 3, (232, 244, 230, 255))
+    for i in range(9):                                    # distant peaks
+        x = round(i * SW / 9 + 8 * math.sin(i * 1.7))
+        h = 30 + round(16 * ((math.sin(i * 2.3) + 1) / 2))
+        for dy in range(h):
+            half = round(dy * 0.95)                       # widest at the base
+            col = MTN_CAP if dy < 5 else MTN_FAR
+            for dx in range(-half, half + 1):
+                put(im, (x + dx) % SW, 152 - h + dy, col)
+    rect(im, 0, 152, SW - 1, SH - 1, MTN_FAR)             # valley floor
+    _ridge(im, 168, 9, 2, 0.6, MTN_NEAR)                  # nearer ridge
+    _ridge(im, 180, 8, 3, 2.1, HILL_C)                    # rolling hills
+    _ridge(im, 190, 7, 4, 4.3, HILL_B, cap=HILL_A)
+    _ridge(im, 200, 6, 5, 1.2, HILL_A, cap=HILL_LIT)
+    return im
 
-    for i in range(26):                       # far band
-        x = round(i * FW / 26 + 5 * math.sin(i * 2.1))
-        _pine(im, x, 132, 26 + round(14 * ((math.sin(i * 3.7) + 1) / 2)), F_FAR)
-    for y in range(126, 142):                 # mist between bands
-        for x in range(FW):
-            if (math.sin(x * 0.11 + y * 0.7) + 1) / 2 > 0.86:
-                put(im, x, y, MIST)
 
-    for i in range(18):                       # mid band
-        x = round(i * FW / 18 + 7 * math.sin(i * 1.3 + 2))
-        _pine(im, x, 166, 40 + round(22 * ((math.sin(i * 2.3 + 1) + 1) / 2)), F_MID, F_TRUNK)
+def cloud_layer():
+    im = img(320, 72)
 
-    for i in range(12):                       # near band
-        x = round(i * FW / 12 + 9 * math.sin(i * 0.9 + 5))
-        _pine(im, x, 200, 56 + round(30 * ((math.sin(i * 1.7 + 3) + 1) / 2)), F_NEAR, F_TRUNK)
+    def puff(cx, cy, r):
+        disc(im, cx, cy, r, CLOUD)
+        disc(im, cx - 1, cy - 1, max(1, r - 2), CLOUD_LIT)
 
-    for y in range(FH - 22, FH):              # haze so it meets the platform
-        a = (y - (FH - 22)) / 22
-        for x in range(FW):
-            px = im.getpixel((x, y))
-            im.putpixel((x, y), tuple(round(px[j] + (F_NEAR[j] - px[j]) * a) for j in range(3)) + (255,))
+    for bx, by, sc in ((34, 40, 1.0), (150, 26, 0.8), (250, 46, 1.15)):
+        puff(bx, by, round(6 * sc))
+        puff(bx + round(9 * sc), by - round(3 * sc), round(8 * sc))
+        puff(bx + round(19 * sc), by, round(6 * sc))
+        rect(im, bx - round(7 * sc), by + round(5 * sc),
+             bx + round(25 * sc), by + round(6 * sc), CLOUD)
+    return im
+
+
+def pine_layer():
+    """Near pine band with alpha, sits just above the platform."""
+    w, h = 192, 84
+    im = img(w, h)
+    for i in range(10):
+        x = round(i * w / 10 + 7 * math.sin(i * 1.9 + 3))
+        ht = 44 + round(26 * ((math.sin(i * 1.3 + 1) + 1) / 2))
+        col = PINE_A if i % 2 else PINE_B
+        tiers = max(3, ht // 12)
+        for t in range(tiers):
+            y0 = h - 6 - round(ht * (t + 1) / tiers)
+            y1 = h - 6 - round(ht * t / tiers)
+            for y in range(y0, y1 + 1):
+                spread = (y - y0) / max(1, y1 - y0)
+                half = round((0.17 * ht / tiers) * (1 + spread * 2.5) + t * 0.6)
+                for dx in range(-half, half + 1):
+                    put(im, (x + dx) % w, min(y, h - 1), col)
+        for y in range(h - 8, h):
+            for x2 in range(x - 1, x + 2):
+                put(im, x2 % w, y, PINE_TRUNK)
     return im
 
 
@@ -289,7 +325,7 @@ CW, CH = 48, 34
 FEET = 31
 HEAD_X, HEAD_Y, HEAD_R = 30.0, 14.0, 9.0
 BODY_X, BODY_Y, BODY_RX, BODY_RY = 22.0, 21.0, 8.2, 5.0
-HIP_Y = 24.0
+HIP_Y = 25.0
 HIP_BACK, HIP_FRONT = 17.0, 26.0
 
 # Long quills fanning off the BACK OF THE HEAD, exactly like the logo mark.
@@ -381,8 +417,8 @@ def _legs(im, phase, running=True):
         if running:
             swing = math.cos(phase + off)
             lift = max(0.0, math.sin(phase + off))
-            foot_x = hip_x + swing * 3.8
-            foot_y = FEET - round(lift * 3.6)
+            foot_x = hip_x + swing * 3.4
+            foot_y = FEET - round(lift * 3.2)
         else:
             swing, lift = 0.0, 0.0
             foot_x, foot_y = hip_x, FEET
@@ -392,13 +428,15 @@ def _legs(im, phase, running=True):
         if near:                                                    # cut line
             _limb(im, hip_x, HIP_Y, knee_x, knee_y, 5.8, 5.2, OUTL)
             _limb(im, knee_x, knee_y, foot_x, foot_y - 1, 5.4, 4.6, OUTL)
-        _limb(im, hip_x, HIP_Y, knee_x, knee_y, 4.4, 3.8, tone)     # thigh
-        _limb(im, knee_x, knee_y, foot_x, foot_y - 1, 4.0, 3.2, tone)  # shin
+        _limb(im, hip_x, HIP_Y, knee_x, knee_y, 5.2, 4.4, tone)     # thigh
+        _limb(im, knee_x, knee_y, foot_x, foot_y - 1, 4.6, 3.8, tone)  # shin
+        if near:                                                    # inner shading
+            _limb(im, knee_x, knee_y + 1, foot_x, foot_y - 1, 2.0, 1.6, SHD)
         fx, fy = round(foot_x), round(foot_y)                       # planted pad
         if near:
             rect(im, fx - 3, fy - 2, fx + 3, fy + 1, OUTL)
-        rect(im, fx - 2, fy - 2, fx + 2, fy, FOOT if near else LEG_FAR)
-        rect(im, fx - 2, fy - 2, fx + 1, fy - 2, LEG if near else LEG_FAR)
+        rect(im, fx - 3, fy - 2, fx + 2, fy, LEG if near else LEG_FAR)
+        rect(im, fx - 3, fy, fx + 2, fy, FOOT)
         if running and lift < 0.12 and swing < -0.25:               # dust off the push
             put(im, round(hip_x - 6), FEET, DUST)
             put(im, round(hip_x - 9), FEET - 2, DUST)
@@ -508,7 +546,8 @@ def hog_sheet():
 # ---------------------------------------------------------------- build
 if __name__ == "__main__":
     os.makedirs(OUT, exist_ok=True)
-    for name, im in (("px-forest", forest_bg()), ("px-ground", ground_tile()),
+    for name, im in (("px-sky", sky_layer()), ("px-clouds", cloud_layer()),
+                     ("px-pines", pine_layer()), ("px-ground", ground_tile()),
                      ("px-props", props_sheet()), ("px-hog", hog_sheet())):
         p = f"{OUT}/{name}.png"
         im.save(p, "PNG", optimize=True)
@@ -520,5 +559,5 @@ if __name__ == "__main__":
     pr = props_sheet().resize((32 * PROP_N * s, 24 * s), Image.NEAREST)
     prev.paste(pr, (0, CH * 4 * s), pr)
     prev.convert("RGB").save(f"{OUT}/_px-preview.png")
-    forest_bg().resize((FW * 3, FH * 3), Image.NEAREST).convert("RGB").save(f"{OUT}/_forest-preview.png")
-    print("  previews -> public/_px-preview.png, public/_forest-preview.png")
+    sky_layer().resize((SW * 3, SH * 3), Image.NEAREST).convert("RGB").save(f"{OUT}/_sky-preview.png")
+    print("  previews -> public/_px-preview.png, public/_sky-preview.png")
