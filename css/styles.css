@@ -211,7 +211,8 @@ h3 { font-size: var(--step-1); }
 .hero {
   position: relative;
   overflow: hidden;
-  padding-block: clamp(56px, 7vw, 112px);
+  padding-block: clamp(56px, 7vw, 112px) clamp(124px, 14.5vw, 216px);
+  background: linear-gradient(180deg, #070A08 0%, #0A0F0B 45%, #0C120E 100%);
 }
 .hero-glow {
   position: absolute;
@@ -223,10 +224,221 @@ h3 { font-size: var(--step-1); }
 }
 .hero-inner {
   position: relative;
+  z-index: 2;
   display: grid;
   gap: var(--space-7);
   align-items: center;
 }
+
+/* ============ hero forest scene ============
+   All layers are transform/opacity only. Paused off-screen via JS. */
+.hero-scene {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+.hero-scene > * { position: absolute; }
+
+/* light rays raking down through the canopy */
+.scene-rays {
+  inset: -20% -10% 30%;
+  background: repeating-linear-gradient(
+    99deg,
+    transparent 0 42px,
+    rgba(180, 226, 194, 0.045) 42px 60px,
+    transparent 60px 104px,
+    rgba(180, 226, 194, 0.028) 104px 118px
+  );
+  mask-image: linear-gradient(180deg, rgba(0, 0, 0, 0.9) 0%, rgba(0, 0, 0, 0.35) 55%, transparent 100%);
+  -webkit-mask-image: linear-gradient(180deg, rgba(0, 0, 0, 0.9) 0%, rgba(0, 0, 0, 0.35) 55%, transparent 100%);
+  animation: rayDrift 19s ease-in-out infinite;
+}
+@keyframes rayDrift {
+  0%, 100% { opacity: 0.55; transform: translate3d(0, 0, 0); }
+  50%      { opacity: 1; transform: translate3d(26px, 0, 0); }
+}
+
+/* tree bands */
+.scene-trees { inset: 0; width: 100%; height: 100%; }
+.scene-trees-far { opacity: 0.85; }
+.scene-trees-near { opacity: 1; }
+
+/* fog banks drifting in opposite directions */
+.scene-fog {
+  left: -25%;
+  right: -25%;
+  height: 46%;
+  background: radial-gradient(60% 100% at 50% 100%, rgba(150, 190, 165, 0.13), transparent 72%);
+}
+.scene-fog-far {
+  bottom: 26%;
+  animation: fogDriftA 41s ease-in-out infinite;
+}
+.scene-fog-near {
+  bottom: 4%;
+  height: 38%;
+  background: radial-gradient(65% 100% at 50% 100%, rgba(150, 190, 165, 0.10), transparent 70%);
+  animation: fogDriftB 53s ease-in-out infinite;
+}
+@keyframes fogDriftA {
+  0%, 100% { transform: translate3d(-4%, 0, 0); }
+  50%      { transform: translate3d(5%, 0, 0); }
+}
+@keyframes fogDriftB {
+  0%, 100% { transform: translate3d(4%, 0, 0); }
+  50%      { transform: translate3d(-5%, 0, 0); }
+}
+
+/* drifting pollen */
+.scene-particles { inset: 0; }
+.scene-particles span {
+  position: absolute;
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background: rgba(190, 232, 202, 0.55);
+  opacity: 0;
+  animation: motePath 14s linear infinite;
+}
+.scene-particles span:nth-child(1)  { left: 6%;  bottom: 12%; animation-duration: 15s; animation-delay: -1s; }
+.scene-particles span:nth-child(2)  { left: 14%; bottom: 20%; animation-duration: 12s; animation-delay: -5s; width: 2px; height: 2px; }
+.scene-particles span:nth-child(3)  { left: 23%; bottom: 8%;  animation-duration: 17s; animation-delay: -9s; }
+.scene-particles span:nth-child(4)  { left: 31%; bottom: 26%; animation-duration: 13s; animation-delay: -3s; width: 2px; height: 2px; }
+.scene-particles span:nth-child(5)  { left: 42%; bottom: 14%; animation-duration: 16s; animation-delay: -12s; }
+.scene-particles span:nth-child(6)  { left: 51%; bottom: 22%; animation-duration: 14s; animation-delay: -7s; width: 2px; height: 2px; }
+.scene-particles span:nth-child(7)  { left: 59%; bottom: 10%; animation-duration: 18s; animation-delay: -2s; }
+.scene-particles span:nth-child(8)  { left: 68%; bottom: 24%; animation-duration: 12s; animation-delay: -11s; width: 2px; height: 2px; }
+.scene-particles span:nth-child(9)  { left: 76%; bottom: 16%; animation-duration: 15s; animation-delay: -6s; }
+.scene-particles span:nth-child(10) { left: 84%; bottom: 28%; animation-duration: 17s; animation-delay: -14s; width: 2px; height: 2px; }
+.scene-particles span:nth-child(11) { left: 91%; bottom: 11%; animation-duration: 13s; animation-delay: -4s; }
+.scene-particles span:nth-child(12) { left: 97%; bottom: 21%; animation-duration: 16s; animation-delay: -8s; width: 2px; height: 2px; }
+@keyframes motePath {
+  0%       { opacity: 0; transform: translate3d(0, 0, 0); }
+  12%      { opacity: 0.85; }
+  70%      { opacity: 0.6; }
+  100%     { opacity: 0; transform: translate3d(34px, -190px, 0); }
+}
+
+/* grass bands: back sits behind the mascot, front in front of it */
+.scene-grass {
+  left: 0;
+  right: 0;
+  bottom: 0;
+  width: 100%;
+  height: clamp(96px, 12vw, 168px);
+}
+.scene-grass-back { fill: #101A13; }
+.scene-grass-front { fill: #050806; height: clamp(104px, 13vw, 182px); }
+.tuft {
+  transform-box: fill-box;
+  transform-origin: 50% 100%;
+  animation: grassSway 7s ease-in-out infinite;
+}
+.tuft:nth-child(2) { animation-duration: 8.4s; animation-delay: -2.1s; }
+.tuft:nth-child(3) { animation-duration: 6.2s; animation-delay: -4.3s; }
+.tuft:nth-child(4) { animation-duration: 9.1s; animation-delay: -1.2s; }
+@keyframes grassSway {
+  0%, 100% { transform: rotate(-0.9deg); }
+  50%      { transform: rotate(0.9deg); }
+}
+
+/* ============ hedgehog mascot ============
+   5.2s sequence on an 18s loop: roll in, uncurl, look around, roll off. */
+.hero-hog {
+  left: 0;
+  bottom: clamp(58px, 7vw, 100px);
+  width: clamp(58px, 6.6vw, 92px);
+  height: clamp(58px, 6.6vw, 92px);
+  z-index: 1;
+  opacity: 0;
+  animation: hogTravel 18s infinite, hogFade 18s infinite;
+}
+.hero-hog > * { position: absolute; inset: 0; }
+.hog-glow {
+  inset: -55%;
+  background: radial-gradient(50% 50% at 50% 55%, rgba(95, 190, 123, 0.20), transparent 70%);
+}
+.hog-spikes { fill: #D8E4DA; }
+.hog-skin { fill: #F4F7F5; }
+.hog-ball-mark { fill: #C2D2C7; }
+.hog-eye { fill: #10140F; }
+.hog-nose { fill: #2A6436; }
+
+.hog-ball {
+  transform-origin: 50% 50%;
+  animation: hogBallShow 18s infinite;
+}
+.hog-ball-spin {
+  transform-box: fill-box;
+  transform-origin: 50% 50%;
+  animation: hogSpin 18s infinite;
+}
+.hog-stand {
+  opacity: 0;
+  transform-origin: 50% 100%;
+  animation: hogStandShow 18s infinite;
+}
+.hog-body {
+  transform-box: fill-box;
+  transform-origin: 50% 100%;
+  animation: hogBob 18s infinite;
+}
+.hog-head {
+  transform-box: fill-box;
+  transform-origin: 0% 50%;
+  animation: hogLook 18s infinite;
+}
+
+@keyframes hogTravel {
+  0%   { transform: translate3d(-18vw, 0, 0); animation-timing-function: cubic-bezier(.16,.72,.3,1); }
+  10%  { transform: translate3d(50vw, 0, 0); }
+  20%  { transform: translate3d(50vw, 0, 0); animation-timing-function: cubic-bezier(.62,0,.86,.36); }
+  29%  { transform: translate3d(122vw, 0, 0); }
+  100% { transform: translate3d(122vw, 0, 0); }
+}
+@keyframes hogFade {
+  0%, 0.6%    { opacity: 0; }
+  2%, 27.6%   { opacity: 0.94; }
+  29.2%, 100% { opacity: 0; }
+}
+@keyframes hogSpin {
+  0%   { transform: rotate(0deg); animation-timing-function: cubic-bezier(.16,.72,.3,1); }
+  10%  { transform: rotate(1080deg); }
+  20%  { transform: rotate(1080deg); animation-timing-function: cubic-bezier(.62,0,.86,.36); }
+  29%  { transform: rotate(2160deg); }
+  100% { transform: rotate(2160deg); }
+}
+@keyframes hogBallShow {
+  0%, 9.4%     { opacity: 1; transform: scale(1); }
+  10.4%        { opacity: 0; transform: scale(0.84); }
+  18.6%        { opacity: 0; transform: scale(0.84); }
+  19.6%, 100%  { opacity: 1; transform: scale(1); }
+}
+@keyframes hogStandShow {
+  0%, 9.6%     { opacity: 0; transform: scale(0.58, 1.22); }
+  11%          { opacity: 1; transform: scale(1.07, 0.93); }
+  12.2%        { opacity: 1; transform: scale(1, 1); }
+  18.4%        { opacity: 1; transform: scale(1, 1); }
+  19.4%, 100%  { opacity: 0; transform: scale(0.58, 1.22); }
+}
+@keyframes hogBob {
+  0%, 12%     { transform: translateY(0); }
+  14.5%       { transform: translateY(-3%); }
+  17%         { transform: translateY(0); }
+  100%        { transform: translateY(0); }
+}
+@keyframes hogLook {
+  0%, 12%      { transform: rotate(0deg); }
+  13.6%, 15%   { transform: rotate(-17deg); }
+  16.4%, 17.6% { transform: rotate(13deg); }
+  18.4%, 100%  { transform: rotate(0deg); }
+}
+
+/* pause the whole scene while the hero is off-screen */
+.hero-scene.is-paused *,
+.hero-scene.is-paused { animation-play-state: paused; }
 .eyebrow {
   font-family: "Space Grotesk", sans-serif;
   font-size: 0.8125rem;
@@ -759,8 +971,18 @@ h3 { font-size: var(--step-1); }
 }
 
 @media (min-width: 1024px) {
-  .hero-inner { grid-template-columns: 1.05fr 0.95fr; }
-  .hero-visual { display: block; }
+  /* wider copy column + end-aligned card pushes the spotlight right,
+     clearing the centre of the grass line for the mascot run */
+  .hero-inner { grid-template-columns: 1.24fr 0.76fr; gap: var(--space-8); }
+  .hero-visual {
+    display: block;
+    justify-self: end;
+    width: 100%;
+    max-width: 430px;
+    /* drop the card toward the grass line so the mascot passes behind it */
+    transform: translateY(clamp(56px, 10.5vw, 148px));
+  }
+  .spot-inner { grid-template-columns: 148px 1fr; }
 }
 
 @media (max-width: 767px) {
@@ -785,6 +1007,15 @@ h3 { font-size: var(--step-1); }
   .logo-svg { height: 38px; }
   .shelf-track .g-card { flex-basis: min(72vw, 240px); }
   .spot-inner { grid-template-columns: 128px 1fr; }
+  /* lighter scene on phones: drop the far band, rays and pollen */
+  .scene-trees-far, .scene-rays, .scene-particles { display: none; }
+  .scene-fog-far { display: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  /* keep the forest as a still backdrop, remove all moving elements */
+  .hero-hog, .scene-particles { display: none; }
+  .scene-rays { opacity: 0.7; }
 }
 
 @media (prefers-reduced-motion: reduce) {

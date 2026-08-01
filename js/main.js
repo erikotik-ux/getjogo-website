@@ -128,6 +128,16 @@ navMenu.addEventListener("click", (e) => {
   }
 });
 
+// ============ hero scene: pause while off-screen ============
+const heroScene = document.querySelector(".hero-scene");
+if (heroScene && "IntersectionObserver" in window) {
+  const sceneIO = new IntersectionObserver(
+    ([entry]) => heroScene.classList.toggle("is-paused", !entry.isIntersecting),
+    { threshold: 0 }
+  );
+  sceneIO.observe(document.querySelector(".hero"));
+}
+
 // ============ scroll reveal ============
 const revealEls = document.querySelectorAll(".g-card, .step-card, .trust-card, .review-card");
 if ("IntersectionObserver" in window && !window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
