@@ -23,6 +23,9 @@ SHD2 = (168, 182, 172, 255)
 EYE = (18, 26, 21, 255)
 NOSE = (34, 44, 38, 255)
 PINK = (233, 170, 170, 255)
+LEG = (178, 191, 182, 255)
+LEG_FAR = (146, 160, 151, 255)
+FOOT = (126, 140, 131, 255)
 
 # ground
 G_LIT = (139, 219, 94, 255)
@@ -285,7 +288,9 @@ def forest_bg():
 CW, CH = 48, 34
 FEET = 31
 HEAD_X, HEAD_Y, HEAD_R = 30.0, 14.0, 9.0
-BODY_X, BODY_Y, BODY_RX, BODY_RY = 22.0, 24.0, 8.0, 5.6
+BODY_X, BODY_Y, BODY_RX, BODY_RY = 22.0, 21.0, 8.2, 5.0
+HIP_Y = 24.0
+HIP_BACK, HIP_FRONT = 17.0, 26.0
 
 # Long quills fanning off the BACK OF THE HEAD, exactly like the logo mark.
 # (angle as a fraction of pi, length, half-width)
@@ -352,29 +357,51 @@ def _face(im, hx, hy, tilt=0.0, blink=False, ear_up=False, smile=False):
         put(im, hx + 7, round(hy + 3 - tilt * 1.6), NOSE)
 
 
+def _limb(im, x0, y0, x1, y1, w0, w1, col):
+    """Thick tapered segment - a limb with weight, not a hairline."""
+    d = math.hypot(x1 - x0, y1 - y0) or 1.0
+    nx, ny = -(y1 - y0) / d, (x1 - x0) / d
+    steps = int(d) + 1
+    for s in range(steps + 1):
+        t = s / steps
+        w = (w0 + (w1 - w0) * t) / 2.0
+        cx, cy = x0 + (x1 - x0) * t, y0 + (y1 - y0) * t
+        k = int(w) + 1
+        for j in range(-k, k + 1):
+            if abs(j) <= w + 0.25:
+                put(im, round(cx + nx * j), round(cy + ny * j), col)
+
+
 def _legs(im, phase, running=True):
-    """Short stubby mascot legs with a big reaching stride."""
-    if not running:
-        for x in (17, 26):
-            rect(im, x, FEET - 5, x + 2, FEET, SHD)
-            rect(im, x, FEET - 5, x + 2, FEET - 4, WHT)
-        return
-    for hip, off in ((26, 0.0), (17, math.pi)):
-        sw = math.sin(phase + off)
-        lift = max(0.0, math.cos(phase + off))
-        foot_x = hip + round(sw * 4.0)
-        foot_y = FEET - round(lift * 4.0)
-        top_y = FEET - 6
-        steps = max(abs(foot_x - hip), abs(foot_y - top_y)) + 1
-        for k in range(steps + 1):
-            t = k / steps
-            x = round(hip + (foot_x - hip) * t)
-            y = round(top_y + (foot_y - top_y) * t)
-            rect(im, x, y, x + 1, y, SHD)
-        rect(im, foot_x, foot_y, foot_x + 2, foot_y, WHT)
-        if sw < -0.75:                             # dust kicked up behind
-            put(im, hip - 5, FEET, DUST)
-            put(im, hip - 8, FEET - 2, DUST)
+    """Short, chunky, jointed legs. The foot pad plants flat on the ground
+    and the knee leads the swing so the stride reads at a glance."""
+    # far leg first in a darker tone, near leg over it with its own dark edge,
+    # so the two limbs stay readable instead of merging into one grey mass
+    for hip_x, off, near in ((HIP_BACK, math.pi, False), (HIP_FRONT, 0.0, True)):
+        if running:
+            swing = math.cos(phase + off)
+            lift = max(0.0, math.sin(phase + off))
+            foot_x = hip_x + swing * 3.8
+            foot_y = FEET - round(lift * 3.6)
+        else:
+            swing, lift = 0.0, 0.0
+            foot_x, foot_y = hip_x, FEET
+        knee_x = (hip_x + foot_x) / 2 + 1.2 + swing * 0.7
+        knee_y = (HIP_Y + foot_y) / 2 + 0.6 - lift * 0.8
+        tone = LEG if near else LEG_FAR
+        if near:                                                    # cut line
+            _limb(im, hip_x, HIP_Y, knee_x, knee_y, 5.8, 5.2, OUTL)
+            _limb(im, knee_x, knee_y, foot_x, foot_y - 1, 5.4, 4.6, OUTL)
+        _limb(im, hip_x, HIP_Y, knee_x, knee_y, 4.4, 3.8, tone)     # thigh
+        _limb(im, knee_x, knee_y, foot_x, foot_y - 1, 4.0, 3.2, tone)  # shin
+        fx, fy = round(foot_x), round(foot_y)                       # planted pad
+        if near:
+            rect(im, fx - 3, fy - 2, fx + 3, fy + 1, OUTL)
+        rect(im, fx - 2, fy - 2, fx + 2, fy, FOOT if near else LEG_FAR)
+        rect(im, fx - 2, fy - 2, fx + 1, fy - 2, LEG if near else LEG_FAR)
+        if running and lift < 0.12 and swing < -0.25:               # dust off the push
+            put(im, round(hip_x - 6), FEET, DUST)
+            put(im, round(hip_x - 9), FEET - 2, DUST)
 
 
 def hog_stand(tilt=0.0, blink=False, ear_up=False, smile=False,
@@ -382,6 +409,7 @@ def hog_stand(tilt=0.0, blink=False, ear_up=False, smile=False,
     im = img(CW, CH)
     bx, by = BODY_X + lean * 3, BODY_Y - bob
     hx, hy = HEAD_X + lean * 4, HEAD_Y - bob
+    _legs(im, phase, running)                                       # hips hide under the body
     for y in range(int(by - BODY_RY - 1), int(by + BODY_RY + 2)):   # compact body
         for x in range(int(bx - BODY_RX - 1), int(bx + BODY_RX + 2)):
             sx = x - (by - y) * lean
@@ -390,12 +418,12 @@ def hog_stand(tilt=0.0, blink=False, ear_up=False, smile=False,
     disc(im, hx, hy, HEAD_R, WHT)                                   # head mass
     _quill_set(im, hx, hy, HEAD_R, phase, gust=lean * 3.2)          # cut lines on top
     _face(im, hx, hy, tilt, blink, ear_up, smile)
-    _legs(im, phase, running)
     for x in range(int(bx - BODY_RX), int(bx + BODY_RX) + 1):       # belly shading
         for y in range(int(by), int(by + BODY_RY) + 1):
             d = ((x - bx) / BODY_RX) ** 2 + ((y - by) / BODY_RY) ** 2
             if d <= 0.98 and im.getpixel((x, y))[:3] == WHT[:3]:
-                put(im, x, y, SHD2 if d > 0.70 else SHD)
+                if d > 0.80:
+                    put(im, x, y, SHD)
     outline(im)
     return im
 
