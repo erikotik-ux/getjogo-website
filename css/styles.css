@@ -211,7 +211,7 @@ h3 { font-size: var(--step-1); }
 .hero {
   position: relative;
   overflow: hidden;
-  padding-block: clamp(56px, 7vw, 112px) clamp(152px, 15.5vw, 226px);
+  padding-block: clamp(56px, 7vw, 112px) clamp(178px, 17.5vw, 258px);
   background: linear-gradient(180deg, #070A08 0%, #0A0F0B 45%, #0C120E 100%);
 }
 .hero-glow {
@@ -350,11 +350,11 @@ h3 { font-size: var(--step-1); }
 .hog-sprite {
   left: 0;
   bottom: calc(var(--px-floor) - var(--px-unit) * 5);
-  width: calc(var(--px-unit) * 36);
-  height: calc(var(--px-unit) * 26);
-  margin-left: calc(var(--px-unit) * -18);
+  width: calc(var(--px-unit) * 48);
+  height: calc(var(--px-unit) * 34);
+  margin-left: calc(var(--px-unit) * -24);
   background-image: url("../public/px-hog.png");
-  background-size: calc(var(--px-unit) * 432) calc(var(--px-unit) * 104);
+  background-size: calc(var(--px-unit) * 576) calc(var(--px-unit) * 136);
   background-repeat: no-repeat;
   opacity: 0;
   will-change: transform;

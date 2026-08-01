@@ -84,15 +84,19 @@ def outline(im, c=OUTL):
                     break
 
 
-def _spike(im, bx, by, tx, ty, halfw, col):
-    """Filled triangle from a base segment to a tip."""
+def _spike(im, bx, by, tx, ty, halfw, col, taper=1.0):
+    """Filled triangle from a base segment to a tip.
+
+    taper < 1 keeps the spike broad for most of its run before it points,
+    which is what makes the quills read as a solid mass rather than hair.
+    """
     dx, dy = tx - bx, ty - by
     ln = max(1.0, math.hypot(dx, dy))
     nx, ny = -dy / ln, dx / ln
     steps = int(ln) + 1
     for s in range(steps + 1):
         t = s / steps
-        w = halfw * (1.0 - t)
+        w = halfw * (1.0 - t) ** taper
         cx, cy = bx + dx * t, by + dy * t
         k = int(w) + 1
         for j in range(-k, k + 1):
@@ -276,140 +280,138 @@ def forest_bg():
 
 
 # ---------------------------------------------------------------- mascot
-CW, CH = 36, 26          # wider cell so the swept-back quills fit
-FEET = 23
-BODY_X, BODY_Y = 17.0, 15.0
-BODY_RX, BODY_RY = 8.5, 5.6      # sleek: long and low rather than round
-HEAD_X, HEAD_Y = 26, 13
+# Mascot proportions, not animal anatomy: the head and its quills are the
+# character. The body is a small athletic wedge tucked underneath.
+CW, CH = 48, 34
+FEET = 31
+HEAD_X, HEAD_Y, HEAD_R = 30.0, 14.0, 9.0
+BODY_X, BODY_Y, BODY_RX, BODY_RY = 22.0, 24.0, 8.0, 5.6
 
-# Long quills swept hard backward, the way the logo's flame spikes trail.
+# Long quills fanning off the BACK OF THE HEAD, exactly like the logo mark.
 # (angle as a fraction of pi, length, half-width)
 QUILLS = [
-    (0.24, 7.5, 3.0),
-    (0.42, 10.0, 3.6),
-    (0.60, 11.0, 3.8),
-    (0.78, 9.5, 3.4),
-    (0.95, 7.0, 2.8),
+    (0.38, 12.5, 3.8),
+    (0.55, 15.5, 4.6),
+    (0.72, 16.5, 4.8),
+    (0.89, 14.5, 4.2),
+    (1.06, 11.5, 3.4),
 ]
-SWEEP = 0.55                     # radians of backward lean on every quill
+SWEEP = 0.26                     # extra backward lean on every quill
+FLAT = 0.46                      # keeps the fan swept back rather than upright
 DUST = (196, 210, 198, 255)
 
 
-def _quill_set(im, cx, cy, rx, ry, phase=0.0, gust=0.0):
+def _quill_set(im, cx, cy, r, phase=0.0, gust=0.0):
     """Each quill is drawn twice - a fatter dark pass, then white - so every
     spike keeps its own cut line, like the white separations in the logo."""
     for i, (frac, ln, hw) in enumerate(QUILLS):
         a = math.pi * frac
-        bx = cx + math.cos(a) * rx * 0.80
-        by = cy - math.sin(a) * ry * 0.80
-        wob = 0.7 * math.sin(i * 1.7 + phase) + gust * (0.5 + 0.5 * i / len(QUILLS))
-        sweep = a + SWEEP
-        tx = cx + math.cos(sweep) * (rx * 0.80 + ln + wob)
-        ty = cy - math.sin(sweep) * (ry * 0.80 + ln * 0.78 + wob)
+        bx = cx + math.cos(a) * r * 0.94
+        by = cy - math.sin(a) * r * 0.94
+        wob = 0.8 * math.sin(i * 1.7 + phase) + gust * (0.4 + 0.6 * i / len(QUILLS))
+        sw = a + SWEEP
+        tx = cx + math.cos(sw) * (r * 0.94 + ln + wob)
+        ty = cy - math.sin(sw) * (r * 0.94 + (ln + wob) * FLAT)
         d = math.hypot(tx - bx, ty - by) or 1
-        ex, ey = tx + (tx - bx) / d * 1.3, ty + (ty - by) / d * 1.3
-        _spike(im, bx, by, ex, ey, hw + 1.0, OUTL)
-        _spike(im, bx, by, tx, ty, hw, WHT)
+        ex, ey = tx + (tx - bx) / d * 1.4, ty + (ty - by) / d * 1.4
+        _spike(im, bx, by, ex, ey, hw + 1.2, OUTL, taper=0.72)
+        _spike(im, bx, by, tx, ty, hw, WHT, taper=0.72)
 
 
 def _face(im, hx, hy, tilt=0.0, blink=False, ear_up=False, smile=False):
-    """Alert almond eye while moving; the logo's crescent when content."""
-    hy -= tilt * 1.6
-    disc(im, hx, hy, 4.6, WHT)
-    step = 0.55 + tilt * 1.45                       # blunt pointed snout
-    for i in range(3):
-        yy = hy + 1 - i * step
-        half = 3 - i
-        rect(im, hx + 4 + i, round(yy) - half, hx + 4 + i, round(yy) + half - 1, WHT)
-    nx, ny = hx + 6, round(hy + 1 - 2 * step)
+    """Big head, short blunt snout, oversized eye."""
+    hy -= tilt * 2.0
+    disc(im, hx, hy, HEAD_R, WHT)
+    step = 0.9 + tilt * 1.9                        # short blunt snout
+    for i in range(4):
+        yy = hy + 2 - i * step
+        half = 4 - i
+        rect(im, hx + 7 + i, round(yy) - half, hx + 7 + i, round(yy) + max(0, half - 2), WHT)
+    nx, ny = hx + 11, round(hy + 2 - 3 * step)
     rect(im, nx, ny - 1, nx, ny, NOSE)
 
-    ey = hy - 5 - (1 if ear_up else 0)              # swept-back ear
-    _spike(im, hx - 1, hy - 3, hx - 3, ey - 1, 2.0, WHT)
-    put(im, hx - 2, ey + 2, PINK)
+    ey = hy - HEAD_R - 1 - (1 if ear_up else 0)    # small swept ear
+    _spike(im, hx - 1, hy - HEAD_R + 2, hx - 4, ey, 2.4, WHT)
+    put(im, hx - 3, ey + 3, PINK)
 
-    ex, ey2 = hx, round(hy - 2 - tilt * 1.1)
+    ex, ey2 = hx + 2, round(hy - 2 - tilt * 1.4)   # oversized mascot eye
     if blink:
-        rect(im, ex - 1, ey2 + 1, ex + 2, ey2 + 1, EYE)
-    elif smile:                                     # logo crescent: content
-        rect(im, ex, ey2, ex + 1, ey2, EYE)
-        put(im, ex - 1, ey2 + 1, EYE)
-        put(im, ex + 2, ey2 + 1, EYE)
-        rect(im, ex, ey2 + 2, ex + 1, ey2 + 2, EYE)
-    else:                                           # big alert eye with a glint
-        rect(im, ex - 1, ey2, ex + 2, ey2 + 2, EYE)
-        put(im, ex - 1, ey2, T)
-        put(im, ex + 2, ey2, T)
-        put(im, ex + 1, ey2, WHT)
+        rect(im, ex - 2, ey2 + 1, ex + 2, ey2 + 1, EYE)
+    elif smile:                                    # logo crescent: content
+        rect(im, ex - 1, ey2 - 1, ex + 1, ey2 - 1, EYE)
+        put(im, ex - 2, ey2, EYE)
+        put(im, ex + 2, ey2, EYE)
+        rect(im, ex - 1, ey2 + 1, ex + 1, ey2 + 1, EYE)
+    else:
+        rect(im, ex - 2, ey2 - 2, ex + 2, ey2 + 2, EYE)
+        for dx, dy in ((-2, -2), (2, -2), (-2, 2), (2, 2)):
+            put(im, ex + dx, ey2 + dy, WHT)
+        rect(im, ex + 1, ey2 - 2, ex + 2, ey2 - 1, WHT)   # glint
     if smile:
-        put(im, hx + 3, round(hy + 3 - tilt * 1.2), NOSE)
-        put(im, hx + 4, round(hy + 2 - tilt * 1.4), NOSE)
+        put(im, hx + 6, round(hy + 4 - tilt * 1.4), NOSE)
+        put(im, hx + 7, round(hy + 3 - tilt * 1.6), NOSE)
 
 
 def _legs(im, phase, running=True):
-    """Long reaching stride rather than a plod."""
+    """Short stubby mascot legs with a big reaching stride."""
     if not running:
-        for x in (12, 21):
-            rect(im, x, FEET - 4, x + 1, FEET, SHD)
-            put(im, x, FEET - 4, WHT)
+        for x in (17, 26):
+            rect(im, x, FEET - 5, x + 2, FEET, SHD)
+            rect(im, x, FEET - 5, x + 2, FEET - 4, WHT)
         return
-    for hip, off in ((21, 0.0), (12, math.pi)):
+    for hip, off in ((26, 0.0), (17, math.pi)):
         sw = math.sin(phase + off)
         lift = max(0.0, math.cos(phase + off))
-        foot_x = hip + round(sw * 3.5)
-        foot_y = FEET - round(lift * 3.0)
-        steps = max(abs(foot_x - hip), abs(foot_y - (FEET - 5))) + 1
+        foot_x = hip + round(sw * 4.0)
+        foot_y = FEET - round(lift * 4.0)
+        top_y = FEET - 6
+        steps = max(abs(foot_x - hip), abs(foot_y - top_y)) + 1
         for k in range(steps + 1):
             t = k / steps
             x = round(hip + (foot_x - hip) * t)
-            y = round((FEET - 5) + (foot_y - (FEET - 5)) * t)
-            put(im, x, y, SHD)
-            put(im, x + 1, y, SHD)
-        put(im, foot_x, foot_y, WHT)
-        put(im, foot_x + 1, foot_y, WHT)
-        if sw < -0.75:                              # dust kicked up behind
-            put(im, hip - 4, FEET, DUST)
-            put(im, hip - 6, FEET - 1, DUST)
+            y = round(top_y + (foot_y - top_y) * t)
+            rect(im, x, y, x + 1, y, SHD)
+        rect(im, foot_x, foot_y, foot_x + 2, foot_y, WHT)
+        if sw < -0.75:                             # dust kicked up behind
+            put(im, hip - 5, FEET, DUST)
+            put(im, hip - 8, FEET - 2, DUST)
 
 
 def hog_stand(tilt=0.0, blink=False, ear_up=False, smile=False,
               phase=0.0, running=False, bob=0, lean=0.0):
     im = img(CW, CH)
-    cx, cy = BODY_X, BODY_Y - bob
-    rx, ry = BODY_RX, BODY_RY
-    for y in range(int(cy - ry - 1), int(cy + ry + 2)):
-        for x in range(int(cx - rx - 1), int(cx + rx + 2)):
-            # shear the body forward so it reads as leaning into the run
-            sx = x - (cy - y) * lean
-            if ((sx - cx) / rx) ** 2 + ((y - cy) / ry) ** 2 <= 1.0:
+    bx, by = BODY_X + lean * 3, BODY_Y - bob
+    hx, hy = HEAD_X + lean * 4, HEAD_Y - bob
+    for y in range(int(by - BODY_RY - 1), int(by + BODY_RY + 2)):   # compact body
+        for x in range(int(bx - BODY_RX - 1), int(bx + BODY_RX + 2)):
+            sx = x - (by - y) * lean
+            if ((sx - bx) / BODY_RX) ** 2 + ((y - by) / BODY_RY) ** 2 <= 1.0:
                 put(im, x, y, WHT)
-    _quill_set(im, cx, cy, rx, ry, phase, gust=lean * 1.6)
-    _face(im, HEAD_X + round(lean * 2), cy - 2, tilt, blink, ear_up, smile)
+    disc(im, hx, hy, HEAD_R, WHT)                                   # head mass
+    _quill_set(im, hx, hy, HEAD_R, phase, gust=lean * 3.2)          # cut lines on top
+    _face(im, hx, hy, tilt, blink, ear_up, smile)
     _legs(im, phase, running)
-    for x in range(int(cx - rx), int(cx + rx) + 1):
-        for y in range(int(cy), int(cy + ry) + 1):
-            d = ((x - cx) / rx) ** 2 + ((y - cy) / ry) ** 2
+    for x in range(int(bx - BODY_RX), int(bx + BODY_RX) + 1):       # belly shading
+        for y in range(int(by), int(by + BODY_RY) + 1):
+            d = ((x - bx) / BODY_RX) ** 2 + ((y - by) / BODY_RY) ** 2
             if d <= 0.98 and im.getpixel((x, y))[:3] == WHT[:3]:
-                if d > 0.72:
-                    put(im, x, y, SHD2)
-                elif d > 0.40:
-                    put(im, x, y, SHD)
+                put(im, x, y, SHD2 if d > 0.70 else SHD)
     outline(im)
     return im
 
 
 def hog_ball(spin, streaks=True):
     im = img(CW, CH)
-    cx, cy, r = 18, FEET - 8, 7.6
+    cx, cy, r = 24, FEET - 12, 9.5
     disc(im, cx, cy, r, WHT)
-    for i in range(10):
-        a = spin + 2 * math.pi * i / 10
-        bx, by = cx + math.cos(a) * r * 0.66, cy - math.sin(a) * r * 0.66
-        tx = cx + math.cos(a + 0.40) * (r + 5.2)
-        ty = cy - math.sin(a + 0.40) * (r + 5.2)
-        d = math.hypot(tx - bx, ty - by) or 1
-        _spike(im, bx, by, tx + (tx - bx) / d * 1.3, ty + (ty - by) / d * 1.3, 2.7, OUTL)
-        _spike(im, bx, by, tx, ty, 2.0, WHT)
+    for i in range(11):
+        a = spin + 2 * math.pi * i / 11
+        qx, qy = cx + math.cos(a) * r * 0.92, cy - math.sin(a) * r * 0.92
+        tx = cx + math.cos(a + 0.38) * (r + 6.0)
+        ty = cy - math.sin(a + 0.38) * (r + 6.0)
+        d = math.hypot(tx - qx, ty - qy) or 1
+        _spike(im, qx, qy, tx + (tx - qx) / d * 1.4, ty + (ty - qy) / d * 1.4, 3.8, OUTL, taper=0.78)
+        _spike(im, qx, qy, tx, ty, 2.8, WHT, taper=0.78)
     for y in range(int(cy - r), int(cy + r) + 1):
         for x in range(int(cx - r), int(cx + r) + 1):
             if (x - cx) ** 2 + (y - cy) ** 2 <= (r - 1) ** 2:
@@ -419,10 +421,10 @@ def hog_ball(spin, streaks=True):
                 if math.cos(ang) < -0.75:
                     put(im, x, y, SHD2)
     outline(im)
-    if streaks:                                     # speed lines trailing behind
-        for k, sy in enumerate((cy - 4, cy, cy + 4)):
-            ln = (5, 7, 4)[k]
-            x0 = int(cx - r - 4 - (k % 2) * 2)
+    if streaks:                                    # speed lines trailing behind
+        for k, sy in enumerate((cy - 5, cy, cy + 5)):
+            ln = (6, 9, 5)[k]
+            x0 = int(cx - r - 5 - (k % 2) * 3)
             for x in range(x0 - ln, x0):
                 if (x + k) % 2 == 0:
                     put(im, x, int(sy), DUST)
@@ -430,19 +432,23 @@ def hog_ball(spin, streaks=True):
 
 
 def hog_uncurl(t):
+    """Ball opens up: the head rises out and the body settles underneath."""
     im = img(CW, CH)
-    cx = 17
-    rx = 7.6 + (BODY_RX - 7.6) * t
-    ry = 7.6 - (7.6 - BODY_RY) * t
-    cy = FEET - 8 + t * 1.2
-    for y in range(int(cy - ry - 1), int(cy + ry + 2)):
-        for x in range(int(cx - rx - 1), int(cx + rx + 2)):
-            if ((x - cx) / rx) ** 2 + ((y - cy) / ry) ** 2 <= 1.0:
-                put(im, x, y, WHT)
-    _quill_set(im, cx, cy, rx, ry, phase=t * 3)
-    if t > 0.40:
-        _face(im, HEAD_X, cy - 2)
-    if t > 0.62:
+    cy = (FEET - 12) + (HEAD_Y - (FEET - 12)) * t
+    cx = 24 + (HEAD_X - 24) * t
+    r = 9.5 + (HEAD_R - 9.5) * t
+    if t > 0.45:
+        k = (t - 0.45) / 0.55
+        by, brx, bry = BODY_Y, BODY_RX * k, BODY_RY * k
+        for y in range(int(by - bry - 1), int(by + bry + 2)):
+            for x in range(int(BODY_X - brx - 1), int(BODY_X + brx + 2)):
+                if brx > 0 and ((x - BODY_X) / brx) ** 2 + ((y - by) / bry) ** 2 <= 1.0:
+                    put(im, x, y, WHT)
+    disc(im, cx, cy, r, WHT)
+    _quill_set(im, cx, cy, r, phase=t * 3)
+    if t > 0.45:
+        _face(im, cx, cy)
+    if t > 0.70:
         _legs(im, 0, running=False)
     outline(im)
     return im
@@ -456,12 +462,12 @@ def hog_sheet():
         sheet.paste(hog_ball(-2 * math.pi * i / 12), (CW * i, 0))
     for i in range(6):
         sheet.paste(hog_uncurl((i + 1) / 6), (CW * i, CH))
-    for i in range(8):                               # run: leaning, bobbing
+    for i in range(8):                              # run: leaning, bobbing
         ph = 2 * math.pi * i / 8
-        sheet.paste(hog_stand(phase=ph, running=True, lean=0.34,
+        sheet.paste(hog_stand(phase=ph, running=True, lean=0.30,
                               bob=1 if i in (1, 2, 5, 6) else 0),
                     (CW * i, CH * 2))
-    idle = [                                         # look up at the card
+    idle = [                                        # look up at the card
         dict(tilt=0.0), dict(tilt=0.4), dict(tilt=0.8), dict(tilt=0.8, ear_up=True),
         dict(tilt=0.8, blink=True), dict(tilt=0.8, smile=True),
         dict(tilt=0.8, smile=True, ear_up=True), dict(tilt=0.4, smile=True),

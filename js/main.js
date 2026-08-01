@@ -199,7 +199,7 @@ if (hogSprite && !window.matchMedia("(prefers-reduced-motion: reduce)").matches)
     }
 
     const u = unit();
-    const cell = `${-col * 36 * u}px ${-ph.row * 26 * u}px`;
+    const cell = `${-col * 48 * u}px ${-ph.row * 34 * u}px`;
     if (cell !== lastCell) { hogSprite.style.backgroundPosition = cell; lastCell = cell; }
 
     const e = ph.ease ? ph.ease(prog) : prog;
