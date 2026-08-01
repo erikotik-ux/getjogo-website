@@ -350,11 +350,11 @@ h3 { font-size: var(--step-1); }
 .hog-sprite {
   left: 0;
   bottom: calc(var(--px-floor) - var(--px-unit) * 5);
-  width: calc(var(--px-unit) * 32);
+  width: calc(var(--px-unit) * 36);
   height: calc(var(--px-unit) * 26);
-  margin-left: calc(var(--px-unit) * -16);
+  margin-left: calc(var(--px-unit) * -18);
   background-image: url("../public/px-hog.png");
-  background-size: calc(var(--px-unit) * 384) calc(var(--px-unit) * 104);
+  background-size: calc(var(--px-unit) * 432) calc(var(--px-unit) * 104);
   background-repeat: no-repeat;
   opacity: 0;
   will-change: transform;

@@ -143,9 +143,9 @@ if (heroScene && "IntersectionObserver" in window) {
 }
 
 // ============ 16-bit mascot ============
-// One sprite sheet, four rows: 0 roll(12) 1 uncurl(6) 2 walk(8) 3 idle(8).
+// One sprite sheet, four rows: 0 roll(12) 1 uncurl(6) 2 run(8) 3 idle(8).
 // A phase list drives both the frame and the position, so the choreography
-// stays readable: roll in, uncurl, walk under the Deal card, look up and
+// stays readable: roll in, uncurl, run under the Deal card, look up and
 // blink, curl back up, roll off. Runs once per LOOP_MS.
 const hogSprite = document.querySelector(".hog-sprite");
 if (hogSprite && !window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
@@ -154,14 +154,14 @@ if (hogSprite && !window.matchMedia("(prefers-reduced-motion: reduce)").matches)
   const easeIn = (t) => t * t * t;
 
   const PHASES = [
-    { dur: 1800, row: 0, fps: 22, from: -0.12, to: 0.30, ease: easeOut },
+    { dur: 1700, row: 0, fps: 28, from: -0.14, to: 0.30, ease: easeOut },
     { dur: 420,  row: 1, fps: 0,  from: 0.30,  to: 0.30, ramp: 6 },
-    { dur: 2300, row: 2, fps: 12, from: 0.30,  to: 0.68 },
+    { dur: 1750, row: 2, fps: 16, from: 0.30,  to: 0.68 },
     // look up at the card, hold, blink, twitch an ear, settle
-    { dur: 3000, row: 3, fps: 0,  from: 0.68,  to: 0.68,
-      script: [0, 1, 2, 2, 2, 3, 2, 4, 2, 2, 6, 2, 2, 5, 2, 7] },
+    { dur: 3600, row: 3, fps: 0,  from: 0.68,  to: 0.68,
+      script: [0, 1, 2, 2, 2, 3, 2, 4, 2, 5, 5, 6, 5, 5, 4, 5, 7, 7] },
     { dur: 400,  row: 1, fps: 0,  from: 0.68,  to: 0.68, ramp: 6, reverse: true },
-    { dur: 1700, row: 0, fps: 22, from: 0.68,  to: 1.14, ease: easeIn },
+    { dur: 1500, row: 0, fps: 28, from: 0.68,  to: 1.16, ease: easeIn },
   ];
   const ACTIVE = PHASES.reduce((n, p) => n + p.dur, 0);
 
@@ -199,7 +199,7 @@ if (hogSprite && !window.matchMedia("(prefers-reduced-motion: reduce)").matches)
     }
 
     const u = unit();
-    const cell = `${-col * 32 * u}px ${-ph.row * 26 * u}px`;
+    const cell = `${-col * 36 * u}px ${-ph.row * 26 * u}px`;
     if (cell !== lastCell) { hogSprite.style.backgroundPosition = cell; lastCell = cell; }
 
     const e = ph.ease ? ph.ease(prog) : prog;
