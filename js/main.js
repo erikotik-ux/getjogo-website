@@ -130,6 +130,39 @@ navMenu.addEventListener("click", (e) => {
   }
 });
 
+// ============ typography: no single-word last lines ============
+// `text-wrap: pretty` handles most blocks; where it cannot, tie the final
+// two words with a non-breaking space. Skipped when that pair is long
+// enough to risk overflowing a narrow column.
+function bindLastWords(scope) {
+  scope.querySelectorAll("p, li, blockquote, figcaption, .spot-desc, .g-desc").forEach((el) => {
+    const texts = [...el.childNodes].filter((n) => n.nodeType === 3 && n.textContent.trim());
+    const last = texts[texts.length - 1];
+    if (!last || last !== el.lastChild) return;
+    const t = last.textContent.replace(/\s+$/, "");
+    const i = t.lastIndexOf(" ");
+    if (i <= 0) return;
+    const pair = t.slice(t.lastIndexOf(" ", i - 1) + 1);
+    if (pair.length > 24) return;
+    last.textContent = t.slice(0, i) + " " + t.slice(i + 1);
+  });
+}
+bindLastWords(document);
+
+// ============ header: scrim over the hero, solid once scrolled ============
+const siteHeader = document.querySelector(".site-header");
+if (siteHeader) {
+  let stuck = null;
+  const sync = () => {
+    const next = window.scrollY > 24;
+    if (next === stuck) return;           // only touch the DOM on a change
+    stuck = next;
+    siteHeader.classList.toggle("is-stuck", next);
+  };
+  addEventListener("scroll", sync, { passive: true });
+  sync();
+}
+
 // ============ hero scene: pause while off-screen ============
 const heroScene = document.querySelector(".hero-scene");
 let sceneVisible = true;

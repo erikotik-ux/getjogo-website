@@ -77,6 +77,11 @@ h1, h2, h3 {
   line-height: 1.1;
   letter-spacing: -0.015em;
   font-weight: 700;
+  text-wrap: balance;          /* keeps headings from dropping a lone word */
+}
+/* pull the last line up so no paragraph ends on a single-word line */
+p, li, blockquote, figcaption, dd, dt, .spot-desc, .g-desc {
+  text-wrap: pretty;
 }
 h1 { font-size: var(--step-4); }
 h2 { font-size: var(--step-3); }
@@ -144,14 +149,22 @@ h3 { font-size: var(--step-1); }
 .btn-lg { min-height: 56px; padding: 14px 36px; font-size: 1.0625rem; }
 
 /* ============ header ============ */
+/* Over the hero the bar is only a soft scrim so the pixel sky reads through;
+   once the page scrolls it becomes the solid blurred bar again. */
 .site-header {
   position: sticky;
   top: 0;
   z-index: 100;
-  background: rgba(12, 15, 13, 0.82);
+  background: linear-gradient(180deg, rgba(9, 14, 22, 0.72) 0%, rgba(9, 14, 22, 0.34) 55%, rgba(9, 14, 22, 0) 100%);
+  border-bottom: 1px solid transparent;
+  transition: background var(--med) var(--ease), border-color var(--med) var(--ease),
+              backdrop-filter var(--med) var(--ease);
+}
+.site-header.is-stuck {
+  background: rgba(12, 15, 13, 0.86);
   backdrop-filter: blur(14px);
   -webkit-backdrop-filter: blur(14px);
-  border-bottom: 1px solid var(--border);
+  border-bottom-color: var(--border);
 }
 .header-inner {
   display: flex;
@@ -885,10 +898,18 @@ h3 { font-size: var(--step-1); }
 .step-icon-light { color: var(--accent); background: rgba(42, 100, 54, 0.10); }
 
 /* ============ trust ============ */
+/* six cards, so 3x2 on desktop and 2x3 on tablet - every row fills
+   completely and nothing is left stranded at one end */
 .trust-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 250px), 1fr));
+  grid-template-columns: 1fr;
   gap: clamp(16px, 2vw, 32px);
+}
+@media (min-width: 640px) {
+  .trust-grid { grid-template-columns: repeat(2, 1fr); }
+}
+@media (min-width: 1024px) {
+  .trust-grid { grid-template-columns: repeat(3, 1fr); }
 }
 .trust-card {
   background: var(--light-surface);
