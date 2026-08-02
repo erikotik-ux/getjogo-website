@@ -3,8 +3,8 @@
 
     cd D:/Business/GetJogo && python scripts/bg_finish.py
 
-- paints out two stray glowing markers the model added to the main peak
-- cools the warm cream cast off the lit snow so the scene stays moonlit
+- paints out stray marks the model leaves in the sky
+- deepens the mid blues a touch so the plate stays calm and moody
 - exports 3840x1646 (desktop) and 1920x823 (mobile) WebP
 """
 import colorsys
@@ -12,42 +12,40 @@ import os
 
 from PIL import Image
 
-SRC = "assets/masters/bg-4k-raw.jpg"
+SRC = "assets/masters/bg2-raw.jpg"
 OUT = "public"
 
-# stray glowing markers on the main peak, plus one lone cloud on the right
-# (the drifting cloud layers are the only clouds the scene should have)
-ARTIFACTS = [(2640, 900, 2770, 1060), (3560, 1090, 3690, 1240), (5240, 960, 5800, 1160)]
+# a thin bright streak the model drew across the sky on the right, ending
+# where the right-hand ridge begins
+ARTIFACTS = [(5200, 1134, 5868, 1178)]
 
 
 def inpaint(im, box):
-    """Rebuild a box by interpolating each row between its outside neighbours."""
+    """Rebuild a box column by column, blending the sky above it into the sky
+    below. Vertical works where horizontal cannot: the mark is a long thin
+    horizontal line, so its own pixels would otherwise be sampled as the
+    right-hand reference and simply painted back in."""
     px = im.load()
     x0, y0, x1, y1 = box
-    span = x1 - x0
-    for y in range(y0, y1):
-        left = px[max(0, x0 - 2), y]
-        right = px[min(im.width - 1, x1 + 1), y]
-        for i, x in enumerate(range(x0, x1)):
+    span = y1 - y0
+    for x in range(x0, x1):
+        top = px[x, max(0, y0 - 2)]
+        bot = px[x, min(im.height - 1, y1 + 1)]
+        for i, y in enumerate(range(y0, y1)):
             t = i / max(1, span - 1)
-            px[x, y] = tuple(round(left[c] + (right[c] - left[c]) * t) for c in range(3))
+            px[x, y] = tuple(round(top[c] + (bot[c] - top[c]) * t) for c in range(3))
 
 
-def cool_snow(im):
-    """Rotate the warm cream highlights back toward cool moonlit white."""
+def deepen(im, gain=0.94, desat=0.12):
+    """Pull the vivid blues down slightly - moodier, and kinder to the copy."""
     px = im.load()
     for y in range(im.height):
         for x in range(im.width):
             r, g, b = px[x, y]
-            if r <= b:                       # already cool, leave it
-                continue
             h, s, v = colorsys.rgb_to_hsv(r / 255, g / 255, b / 255)
-            if not (0.01 < h < 0.17 and s > 0.04):
-                continue
-            mix = min(1.0, s * 6.0)          # the warmer it is, the harder we pull
-            nh = 0.58                        # cool blue
-            ns = s * (1.0 - 0.55 * mix)
-            r2, g2, b2 = colorsys.hsv_to_rgb(nh, ns, v)
+            if s > 0.25 and v > 0.20:                 # only the saturated mid-tones
+                s *= (1.0 - desat)
+            r2, g2, b2 = colorsys.hsv_to_rgb(h, s, v * gain)
             px[x, y] = (round(r2 * 255), round(g2 * 255), round(b2 * 255))
 
 
@@ -55,8 +53,8 @@ if __name__ == "__main__":
     im = Image.open(SRC).convert("RGB")
     for box in ARTIFACTS:
         inpaint(im, box)
-    cool_snow(im)
-    im.save("assets/masters/bg-4k-clean.jpg", quality=95)
+    deepen(im)
+    im.save("assets/masters/bg2-clean.jpg", quality=95)
 
     for w, tag in ((3840, ""), (1920, "-sm")):
         r = im.resize((w, round(im.height * w / im.width)), Image.LANCZOS)
