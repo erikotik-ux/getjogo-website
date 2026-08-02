@@ -259,42 +259,51 @@ h3 { font-size: var(--step-1); }
 }
 .hero-scene > * { position: absolute; }
 
-/* Layered SNES landscape: sky+mountains+hills, drifting clouds, near pines.
-   Each tiles horizontally and parallaxes at its own rate. */
-.scene-sky, .scene-clouds, .scene-pines {
+/* Layered SNES landscape. Sky and land are static and share the same
+   bottom-anchored 384x200 grid so they register exactly; two cloud bands
+   sit between them and drift at different speeds for parallax. */
+.scene-sky, .scene-clouds, .scene-land {
   image-rendering: pixelated;
   background-repeat: repeat-x;
   will-change: transform;
 }
 .scene-sky {
   inset: 0 0 calc(var(--px-floor) - var(--px-unit) * 2) 0;
-  background-color: #172644;                 /* matches the plate's top row */
+  background-color: #090e20;                 /* matches the plate's top row */
   background-image: url("../public/px-sky.png");
   background-size: calc(var(--px-unit) * 384) calc(var(--px-unit) * 200);
   background-position: bottom left;
 }
-.scene-clouds {
-  left: 0;
-  right: 0;
-  bottom: calc(var(--px-floor) + var(--px-unit) * 112);
-  height: calc(var(--px-unit) * 72);
-  background-image: url("../public/px-clouds.png");
-  background-size: calc(var(--px-unit) * 320) calc(var(--px-unit) * 72);
-  opacity: 0.7;
-  animation: cloudDrift 120s linear infinite;
-}
-@keyframes cloudDrift {
-  from { background-position-x: 0; }
-  to   { background-position-x: calc(var(--px-unit) * 320); }
-}
-.scene-pines {
-  left: 0;
-  right: 0;
-  bottom: calc(var(--px-floor) - var(--px-unit) * 3);
-  height: calc(var(--px-unit) * 84);
-  background-image: url("../public/px-pines.png");
-  background-size: calc(var(--px-unit) * 192) calc(var(--px-unit) * 84);
+.scene-land {
+  inset: 0 0 calc(var(--px-floor) - var(--px-unit) * 2) 0;
+  background-image: url("../public/px-land.png");
+  background-size: calc(var(--px-unit) * 384) calc(var(--px-unit) * 200);
   background-position: bottom left;
+}
+.scene-clouds { left: 0; right: 0; }
+.scene-clouds-a {
+  bottom: calc(var(--px-floor) + var(--px-unit) * 110);
+  height: calc(var(--px-unit) * 64);
+  background-image: url("../public/px-clouds-a.png");
+  background-size: calc(var(--px-unit) * 256) calc(var(--px-unit) * 64);
+  opacity: 0.72;
+  animation: driftA 240s linear infinite;
+}
+.scene-clouds-b {
+  bottom: calc(var(--px-floor) + var(--px-unit) * 64);
+  height: calc(var(--px-unit) * 84);
+  background-image: url("../public/px-clouds-b.png");
+  background-size: calc(var(--px-unit) * 384) calc(var(--px-unit) * 84);
+  opacity: 0.9;
+  animation: driftB 150s linear infinite;
+}
+@keyframes driftA {
+  from { background-position-x: 0; }
+  to   { background-position-x: calc(var(--px-unit) * 256); }
+}
+@keyframes driftB {
+  from { background-position-x: 0; }
+  to   { background-position-x: calc(var(--px-unit) * 384); }
 }
 
 /* the plate already carries an emerald glow, so dial the brand wash back */
@@ -1090,6 +1099,7 @@ h3 { font-size: var(--step-1); }
   /* lighter plate and no pollen on phones */
   .scene-particles { display: none; }
   .hero-scene { --px-unit: 3px; }
+  .scene-clouds-a { opacity: 0.6; }
 }
 
 @media (prefers-reduced-motion: reduce) {

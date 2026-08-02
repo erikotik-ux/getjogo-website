@@ -215,24 +215,37 @@ def props_sheet():
 
 
 # ---------------------------------------------------------------- landscape
-# Three tiling layers so the hero can parallax them: sky+land, clouds, pines.
+# Four tiling layers so the sky can hold still while two cloud bands drift
+# behind the peaks: sky -> clouds A -> clouds B -> land.
 SW, SH = 384, 200
-SKY_TOP = (23, 38, 68)
-SKY_MID = (48, 84, 118)
-SKY_LOW = (98, 140, 158)
-SKY_GLOW = (156, 168, 150)
-MTN_FAR = (88, 114, 148, 255)
-MTN_CAP = (168, 190, 205, 255)
-MTN_NEAR = (68, 92, 124, 255)
-HILL_A = (70, 128, 92, 255)
-HILL_B = (54, 104, 74, 255)
-HILL_C = (40, 82, 60, 255)
-HILL_LIT = (108, 176, 116, 255)
-CLOUD = (168, 192, 210, 255)
-CLOUD_LIT = (208, 226, 238, 255)
-PINE_A = (34, 76, 55, 255)
-PINE_B = (24, 58, 42, 255)
-PINE_TRUNK = (38, 34, 26, 255)
+
+SKY_TOP = (9, 14, 32)
+SKY_MID = (16, 26, 54)
+SKY_LOW = (28, 44, 78)
+SKY_HORIZON = (44, 64, 104)
+STAR_HI = (204, 218, 242, 255)
+STAR_LO = (108, 128, 168, 255)
+WISP = (22, 36, 68, 255)
+
+# atmospheric perspective: distant ranges sit lighter and bluer
+RANGES = [
+    # (base_y, height, lit, shade, snow, snow_shade)
+    (150, 46, (58, 78, 118), (46, 62, 98), (128, 148, 184), (100, 120, 158)),
+    (163, 62, (44, 60, 96), (32, 46, 78), (156, 176, 208), (118, 140, 176)),
+    (176, 78, (32, 46, 76), (21, 32, 57), (186, 204, 230), (140, 162, 196)),
+]
+FOREST = [
+    (181, (30, 56, 58), 26),
+    (190, (22, 45, 47), 22),
+    (200, (15, 33, 35), 18),
+]
+PINE_FG = (11, 26, 27, 255)
+PINE_FG_LIT = (19, 41, 40, 255)
+PINE_TRUNK = (16, 20, 19, 255)
+
+CLOUD_LIT = (112, 138, 178, 255)
+CLOUD_MID = (78, 100, 142, 255)
+CLOUD_DARK = (54, 72, 110, 255)
 
 
 def _vgrad(im, y0, y1, top, bot):
@@ -242,80 +255,148 @@ def _vgrad(im, y0, y1, top, bot):
              tuple(round(top[i] + (bot[i] - top[i]) * t) for i in range(3)) + (255,))
 
 
-def _ridge(im, base, amp, freq, phase, col, cap=None):
-    """One rolling landform spanning the tile, seamless by construction."""
-    for x in range(im.width):
-        t = 2 * math.pi * x / im.width
-        h = amp * (0.6 * math.sin(t * freq + phase)
-                   + 0.4 * math.sin(t * freq * 2 + phase * 1.7))
-        top = int(base - amp - h)
-        rect(im, x, top, x, im.height - 1, col)
-        if cap and h > amp * 0.45:
-            rect(im, x, top, x, top + 1, cap)
-
-
 def sky_layer():
     im = img(SW, SH)
-    _vgrad(im, 0, 96, SKY_TOP, SKY_MID)
-    _vgrad(im, 96, 140, SKY_MID, SKY_LOW)
-    _vgrad(im, 140, 152, SKY_LOW, SKY_GLOW)
-    for i in range(30):                                   # a few high stars
+    _vgrad(im, 0, 90, SKY_TOP, SKY_MID)
+    _vgrad(im, 90, 150, SKY_MID, SKY_LOW)
+    _vgrad(im, 150, SH, SKY_LOW, SKY_HORIZON)
+
+    for i in range(120):                          # stars, two brightnesses
         n = (math.sin(i * 91.7) * 43758.5453) % 1
         m = (math.sin(i * 27.3 + 4.1) * 24634.6345) % 1
-        put(im, round(n * SW), round(m * 70), (198, 216, 228, 255))
+        b = (math.sin(i * 13.9 + 1.7) * 12543.2318) % 1
+        y = round(m * 128)
+        put(im, round(n * SW), y, STAR_HI if b > 0.72 else STAR_LO)
 
-    for i in range(9):                                    # distant peaks
-        x = round(i * SW / 9 + 8 * math.sin(i * 1.7))
-        h = 30 + round(16 * ((math.sin(i * 2.3) + 1) / 2))
-        for dy in range(h):
-            half = round(dy * 0.95)                       # widest at the base
-            col = MTN_CAP if dy < 5 else MTN_FAR
+    for i in range(5):                            # very faint high haze
+        wy = 42 + round(((math.sin(i * 5.1) + 1) / 2) * 62)
+        wx = round(((math.sin(i * 2.7 + 1) + 1) / 2) * SW)
+        wl = 70 + round(((math.sin(i * 3.3) + 1) / 2) * 90)
+        for k in range(wl):
+            x = (wx + k) % SW
+            edge = min(k, wl - k) / (wl * 0.4)     # fade both ends
+            if edge > 0.55 and (math.sin(k * 0.09 + i) + 1) / 2 > 0.5:
+                base = im.getpixel((x, wy))
+                put(im, x, wy, tuple(min(255, base[j] + 8) for j in range(3)) + (255,))
+    return im
+
+
+def _peak(im, x, base, h, half, lit, shade, snow, snow_sh, lean=1.0):
+    """One mountain: lit left face, shadowed right face, snow cap with gullies."""
+    for dy in range(h):
+        y = base - h + dy
+        if y < 0 or y >= im.height:
+            continue
+        prog = (dy / h) ** 0.92
+        wl = int(half * lean * prog)                  # asymmetric flanks
+        wr = int(half * (2.0 - lean) * prog)
+        w = max(wl, wr)
+        ridge = int(1.8 * math.sin(dy * 0.34) + 1.1 * math.sin(dy * 0.11 + 1.3))
+        for dx in range(-wl, wr + 1):
+            # snowline undulates gently across the face so the cap ends in a
+            # few soft tongues rather than a comb of icicles
+            cap = h * 0.26 * (1.0 + 0.34 * math.sin(dx * 0.15 + x * 0.5)
+                              + 0.16 * math.sin(dx * 0.31 + 1.7))
+            snowy = dy < cap
+            left = dx < ridge
+            if snowy:
+                col = snow if left else snow_sh
+            else:
+                col = lit if left else shade
+            put(im, (x + dx) % im.width, y, col + (255,))
+        # a darker gully beside the ridge, plus faint rock mottling
+        if w > 2:
+            put(im, (x + ridge + 1) % im.width, y,
+                tuple(round(c * 0.86) for c in shade) + (255,))
+            if dy % 5 == 2:
+                mx = int(w * 0.55 * math.sin(dy * 0.7 + x))
+                if abs(mx) < w:
+                    src = lit if mx < ridge else shade
+                    put(im, (x + mx) % im.width, y,
+                        tuple(round(c * 0.92) for c in src) + (255,))
+
+
+def _pine(im, x, base, h, col, lit=None, trunk=None):
+    """Layered conifer: stacked tiers, slight asymmetry, optional lit edge."""
+    tiers = max(4, h // 7)
+    for t in range(tiers):
+        y0 = base - round(h * (t + 1) / tiers)
+        y1 = base - round(h * t / tiers)
+        for y in range(y0, y1 + 1):
+            if y < 0 or y >= im.height:
+                continue
+            f = (y - y0) / max(1, y1 - y0)
+            half = round((0.15 * h / tiers) * (1 + f * 3.0) + t * 0.62)
+            half = max(1, half)
             for dx in range(-half, half + 1):
-                put(im, (x + dx) % SW, 152 - h + dy, col)
-    rect(im, 0, 152, SW - 1, SH - 1, MTN_FAR)             # valley floor
-    _ridge(im, 168, 9, 2, 0.6, MTN_NEAR)                  # nearer ridge
-    _ridge(im, 180, 8, 3, 2.1, HILL_C)                    # rolling hills
-    _ridge(im, 190, 7, 4, 4.3, HILL_B, cap=HILL_A)
-    _ridge(im, 200, 6, 5, 1.2, HILL_A, cap=HILL_LIT)
+                put(im, (x + dx) % im.width, y, col)
+            if lit:                                # light catches the left edge
+                put(im, (x - half) % im.width, y, lit)
+    if trunk:
+        for y in range(base - 3, base + 2):
+            for dx in (-1, 0, 1):
+                put(im, (x + dx) % im.width, y, trunk)
+
+
+def land_layer():
+    """Mountains + forest bands + foreground pines, transparent above."""
+    im = img(SW, SH)
+
+    for ri, (base, h, lit, shade, snow, snow_sh) in enumerate(RANGES):
+        n = (7, 6, 5)[ri]
+        for i in range(n):
+            jitter = math.sin(i * 3.1 + ri * 2.2)
+            x = round((i + 0.5) * SW / n + 14 * jitter)
+            ph = round(h * (0.72 + 0.42 * ((math.sin(i * 2.3 + ri) + 1) / 2)))
+            half = round(ph * (0.78 + 0.24 * ((math.sin(i * 1.7 + ri * 3) + 1) / 2)))
+            lean = 0.80 + 0.42 * ((math.sin(i * 4.1 + ri * 1.9) + 1) / 2)
+            _peak(im, x, base, ph, half, lit, shade, snow, snow_sh, lean)
+
+    for band, (base, col, hgt) in enumerate(FOREST):   # dense receding treelines
+        step = 5 - band
+        for x in range(0, SW, step):
+            hh = hgt + round(6 * math.sin(x * 0.21 + band * 2.4)
+                             + 4 * math.sin(x * 0.07 + band))
+            _pine(im, x, base, hh, col + (255,))
+        rect(im, 0, base, SW - 1, min(SH - 1, base + 3), col + (255,))
+
+    for i in range(13):                                # detailed foreground pines
+        x = round((i + 0.5) * SW / 13 + 9 * math.sin(i * 1.9 + 4))
+        hh = 48 + round(30 * ((math.sin(i * 1.31 + 2) + 1) / 2))
+        _pine(im, x, SH - 2, hh, PINE_FG, PINE_FG_LIT, PINE_TRUNK)
     return im
 
 
-def cloud_layer():
-    im = img(320, 72)
+def _puff(im, cx, cy, r):
+    """One rounded cloud lobe, lit on top and dark underneath."""
+    disc(im, cx, cy, r, CLOUD_MID)
+    disc(im, cx, cy - max(1, r * 0.34), max(1, r * 0.78), CLOUD_LIT)
+    for dx in range(-r, r + 1):
+        yy = cy + int((r * r - dx * dx) ** 0.5) if abs(dx) <= r else cy
+        put(im, (cx + dx) % im.width, yy, CLOUD_DARK)
 
-    def puff(cx, cy, r):
-        disc(im, cx, cy, r, CLOUD)
-        disc(im, cx - 1, cy - 1, max(1, r - 2), CLOUD_LIT)
 
-    for bx, by, sc in ((34, 40, 1.0), (150, 26, 0.8), (250, 46, 1.15)):
-        puff(bx, by, round(6 * sc))
-        puff(bx + round(9 * sc), by - round(3 * sc), round(8 * sc))
-        puff(bx + round(19 * sc), by, round(6 * sc))
-        rect(im, bx - round(7 * sc), by + round(5 * sc),
-             bx + round(25 * sc), by + round(6 * sc), CLOUD)
+def _cloud(im, x, y, scale):
+    lobes = [(-18, 4, 6), (-9, -2, 9), (0, -6, 11), (10, -1, 9), (19, 4, 6)]
+    for lx, ly, lr in lobes:
+        _puff(im, round(x + lx * scale), round(y + ly * scale), max(2, round(lr * scale)))
+    rect(im, round(x - 22 * scale), round(y + 5 * scale),
+         round(x + 23 * scale), round(y + 6 * scale), CLOUD_MID)
+    rect(im, round(x - 22 * scale), round(y + 7 * scale),
+         round(x + 23 * scale), round(y + 7 * scale), CLOUD_DARK)
+
+
+def clouds_far():
+    im = img(256, 64)
+    for x, y, sc in ((40, 34, 0.62), (132, 22, 0.5), (206, 38, 0.7)):
+        _cloud(im, x, y, sc)
     return im
 
 
-def pine_layer():
-    """Near pine band with alpha, sits just above the platform."""
-    w, h = 192, 84
-    im = img(w, h)
-    for i in range(10):
-        x = round(i * w / 10 + 7 * math.sin(i * 1.9 + 3))
-        ht = 44 + round(26 * ((math.sin(i * 1.3 + 1) + 1) / 2))
-        col = PINE_A if i % 2 else PINE_B
-        tiers = max(3, ht // 12)
-        for t in range(tiers):
-            y0 = h - 6 - round(ht * (t + 1) / tiers)
-            y1 = h - 6 - round(ht * t / tiers)
-            for y in range(y0, y1 + 1):
-                spread = (y - y0) / max(1, y1 - y0)
-                half = round((0.17 * ht / tiers) * (1 + spread * 2.5) + t * 0.6)
-                for dx in range(-half, half + 1):
-                    put(im, (x + dx) % w, min(y, h - 1), col)
-        for y in range(h - 8, h):
-            for x2 in range(x - 1, x + 2):
-                put(im, x2 % w, y, PINE_TRUNK)
+def clouds_near():
+    im = img(384, 84)
+    for x, y, sc in ((54, 44, 1.0), (176, 30, 0.82), (296, 48, 1.15)):
+        _cloud(im, x, y, sc)
     return im
 
 
@@ -584,9 +665,10 @@ def hog_sheet():
 # ---------------------------------------------------------------- build
 if __name__ == "__main__":
     os.makedirs(OUT, exist_ok=True)
-    for name, im in (("px-sky", sky_layer()), ("px-clouds", cloud_layer()),
-                     ("px-pines", pine_layer()), ("px-ground", ground_tile()),
-                     ("px-props", props_sheet()), ("px-hog", hog_sheet())):
+    for name, im in (("px-sky", sky_layer()), ("px-clouds-a", clouds_far()),
+                     ("px-clouds-b", clouds_near()), ("px-land", land_layer()),
+                     ("px-ground", ground_tile()), ("px-props", props_sheet()),
+                     ("px-hog", hog_sheet())):
         p = f"{OUT}/{name}.png"
         im.save(p, "PNG", optimize=True)
         print("  %-20s %dx%d  %d bytes" % (p, im.width, im.height, os.path.getsize(p)))
@@ -597,5 +679,13 @@ if __name__ == "__main__":
     pr = props_sheet().resize((32 * PROP_N * s, 24 * s), Image.NEAREST)
     prev.paste(pr, (0, CH * 4 * s), pr)
     prev.convert("RGB").save(f"{OUT}/_px-preview.png")
-    sky_layer().resize((SW * 3, SH * 3), Image.NEAREST).convert("RGB").save(f"{OUT}/_sky-preview.png")
+    prev2 = Image.new("RGBA", (SW, SH), (0, 0, 0, 255))
+    prev2.alpha_composite(sky_layer())
+    ca, cb = clouds_far(), clouds_near()
+    for x in range(0, SW, ca.width):
+        prev2.alpha_composite(ca, (x, 26))
+    for x in range(0, SW, cb.width):
+        prev2.alpha_composite(cb, (x, 52))
+    prev2.alpha_composite(land_layer())
+    prev2.resize((SW * 3, SH * 3), Image.NEAREST).convert("RGB").save(f"{OUT}/_sky-preview.png")
     print("  previews -> public/_px-preview.png, public/_sky-preview.png")
