@@ -259,42 +259,39 @@ h3 { font-size: var(--step-1); }
 }
 .hero-scene > * { position: absolute; }
 
-/* Layered SNES landscape. Sky and land are static and share the same
-   bottom-anchored 384x200 grid so they register exactly; two cloud bands
-   sit between them and drift at different speeds for parallax. */
-.scene-sky, .scene-clouds, .scene-land {
+/* Generated 4K pixel-art backdrop, anchored so its forest meets the platform.
+   The two cloud bands sit on top of it and drift at different speeds. */
+.scene-bg, .scene-clouds {
   image-rendering: pixelated;
-  background-repeat: repeat-x;
   will-change: transform;
 }
-.scene-sky {
+.scene-bg {
   inset: 0 0 calc(var(--px-floor) - var(--px-unit) * 2) 0;
-  background-color: #090e20;                 /* matches the plate's top row */
-  background-image: url("../public/px-sky.png");
-  background-size: calc(var(--px-unit) * 384) calc(var(--px-unit) * 200);
-  background-position: bottom left;
+  background-color: #000132;                 /* matches the plate's top row */
+  background-image: url("../public/px-bg.webp");
+  background-size: cover;
+  background-position: center bottom;
+  background-repeat: no-repeat;
 }
-.scene-land {
-  inset: 0 0 calc(var(--px-floor) - var(--px-unit) * 2) 0;
-  background-image: url("../public/px-land.png");
-  background-size: calc(var(--px-unit) * 384) calc(var(--px-unit) * 200);
-  background-position: bottom left;
+.scene-clouds {
+  left: 0;
+  right: 0;
+  background-repeat: repeat-x;
 }
-.scene-clouds { left: 0; right: 0; }
 .scene-clouds-a {
-  bottom: calc(var(--px-floor) + var(--px-unit) * 110);
+  bottom: calc(var(--px-floor) + var(--px-unit) * 116);
   height: calc(var(--px-unit) * 64);
   background-image: url("../public/px-clouds-a.png");
   background-size: calc(var(--px-unit) * 256) calc(var(--px-unit) * 64);
-  opacity: 0.72;
+  opacity: 0.6;
   animation: driftA 240s linear infinite;
 }
 .scene-clouds-b {
-  bottom: calc(var(--px-floor) + var(--px-unit) * 64);
+  bottom: calc(var(--px-floor) + var(--px-unit) * 74);
   height: calc(var(--px-unit) * 84);
   background-image: url("../public/px-clouds-b.png");
   background-size: calc(var(--px-unit) * 384) calc(var(--px-unit) * 84);
-  opacity: 0.9;
+  opacity: 0.78;
   animation: driftB 150s linear infinite;
 }
 @keyframes driftA {
@@ -1099,7 +1096,8 @@ h3 { font-size: var(--step-1); }
   /* lighter plate and no pollen on phones */
   .scene-particles { display: none; }
   .hero-scene { --px-unit: 3px; }
-  .scene-clouds-a { opacity: 0.6; }
+  .scene-bg { background-image: url("../public/px-bg-sm.webp"); }
+  .scene-clouds-a { opacity: 0.5; }
 }
 
 @media (prefers-reduced-motion: reduce) {

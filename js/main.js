@@ -264,10 +264,9 @@ if (hogSprite && !window.matchMedia("(prefers-reduced-motion: reduce)").matches)
 
 // ============ gentle parallax on the hero layers ============
 const parallaxLayers = [
-  [document.querySelector(".scene-sky"), 0.05],
-  [document.querySelector(".scene-clouds-a"), 0.08],
-  [document.querySelector(".scene-clouds-b"), 0.12],
-  [document.querySelector(".scene-land"), 0.18],
+  [document.querySelector(".scene-bg"), 0.06],
+  [document.querySelector(".scene-clouds-a"), 0.10],
+  [document.querySelector(".scene-clouds-b"), 0.15],
 ].filter(([el]) => el);
 if (parallaxLayers.length && !window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
   let queued = false;
