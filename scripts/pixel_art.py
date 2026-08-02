@@ -243,9 +243,11 @@ PINE_FG = (11, 26, 27, 255)
 PINE_FG_LIT = (19, 41, 40, 255)
 PINE_TRUNK = (16, 20, 19, 255)
 
-CLOUD_LIT = (112, 138, 178, 255)
-CLOUD_MID = (78, 100, 142, 255)
-CLOUD_DARK = (54, 72, 110, 255)
+# tuned against the generated plate: the sky at cloud altitude runs
+# (0,7,61) to (0,23,93), so these sit just above it, cool and deep
+CLOUD_LIT = (56, 82, 134, 255)
+CLOUD_MID = (37, 57, 102, 255)
+CLOUD_DARK = (23, 39, 76, 255)
 
 
 def _vgrad(im, y0, y1, top, bot):
@@ -367,36 +369,41 @@ def land_layer():
     return im
 
 
-def _puff(im, cx, cy, r):
-    """One rounded cloud lobe, lit on top and dark underneath."""
+CLOUD_CELL_W, CLOUD_CELL_H, CLOUD_BASE = 64, 26, 20
+
+# seven silhouettes: (dx, dy, radius) lobes, each a different shape and mass
+CLOUD_SHAPES = [
+    [(-4, 0, 3), (1, -1, 4), (6, 0, 3)],                                  # 0 wisp
+    [(-7, 1, 4), (-1, -2, 5), (5, 0, 4), (10, 1, 3)],                     # 1 small
+    [(-11, 1, 4), (-5, -2, 6), (2, -1, 5), (8, 0, 5), (14, 1, 4)],        # 2 wide low
+    [(-6, 2, 4), (-1, -4, 6), (5, -1, 5), (10, 2, 4)],                    # 3 tall puff
+    [(-2, 0, 3), (2, -1, 4)],                                             # 4 tiny
+    [(-14, 2, 4), (-7, -2, 6), (0, -5, 7), (7, -2, 6), (14, 2, 4)],       # 5 large
+    [(-5, -3, 5), (1, 0, 4), (6, 1, 3), (11, 2, 3), (15, 2, 2)],          # 6 trailing
+]
+
+
+def _lobe(im, cx, cy, r):
     disc(im, cx, cy, r, CLOUD_MID)
-    disc(im, cx, cy - max(1, r * 0.34), max(1, r * 0.78), CLOUD_LIT)
-    for dx in range(-r, r + 1):
-        yy = cy + int((r * r - dx * dx) ** 0.5) if abs(dx) <= r else cy
-        put(im, (cx + dx) % im.width, yy, CLOUD_DARK)
+    disc(im, cx - max(1, r * 0.2), cy - max(1, r * 0.36), max(1, r * 0.72), CLOUD_LIT)
 
 
-def _cloud(im, x, y, scale):
-    lobes = [(-18, 4, 6), (-9, -2, 9), (0, -6, 11), (10, -1, 9), (19, 4, 6)]
-    for lx, ly, lr in lobes:
-        _puff(im, round(x + lx * scale), round(y + ly * scale), max(2, round(lr * scale)))
-    rect(im, round(x - 22 * scale), round(y + 5 * scale),
-         round(x + 23 * scale), round(y + 6 * scale), CLOUD_MID)
-    rect(im, round(x - 22 * scale), round(y + 7 * scale),
-         round(x + 23 * scale), round(y + 7 * scale), CLOUD_DARK)
-
-
-def clouds_far():
-    im = img(256, 64)
-    for x, y, sc in ((40, 34, 0.62), (132, 22, 0.5), (206, 38, 0.7)):
-        _cloud(im, x, y, sc)
-    return im
-
-
-def clouds_near():
-    im = img(384, 84)
-    for x, y, sc in ((54, 44, 1.0), (176, 30, 0.82), (296, 48, 1.15)):
-        _cloud(im, x, y, sc)
+def clouds_sheet():
+    """One row of seven cells, each holding a distinct cloud."""
+    im = img(CLOUD_CELL_W * len(CLOUD_SHAPES), CLOUD_CELL_H)
+    for i, lobes in enumerate(CLOUD_SHAPES):
+        ox = i * CLOUD_CELL_W + CLOUD_CELL_W // 2
+        for dx, dy, r in lobes:
+            _lobe(im, ox + dx, CLOUD_BASE - 4 + dy, r)
+        xs = [ox + dx for dx, _, _ in lobes]
+        rs = [r for _, _, r in lobes]
+        x0 = min(x - r for x, r in zip(xs, rs))
+        x1 = max(x + r for x, r in zip(xs, rs))
+        rect(im, x0, CLOUD_BASE - 1, x1, CLOUD_BASE, CLOUD_MID)       # flat base
+        rect(im, x0, CLOUD_BASE + 1, x1, CLOUD_BASE + 1, CLOUD_DARK)  # shaded underside
+        for x in range(x0, x1 + 1):                                   # soften the ends
+            if x < x0 + 2 or x > x1 - 2:
+                put(im, x, CLOUD_BASE + 1, T)
     return im
 
 
@@ -665,10 +672,8 @@ def hog_sheet():
 # ---------------------------------------------------------------- build
 if __name__ == "__main__":
     os.makedirs(OUT, exist_ok=True)
-    for name, im in (("px-sky", sky_layer()), ("px-clouds-a", clouds_far()),
-                     ("px-clouds-b", clouds_near()), ("px-land", land_layer()),
-                     ("px-ground", ground_tile()), ("px-props", props_sheet()),
-                     ("px-hog", hog_sheet())):
+    for name, im in (("px-clouds", clouds_sheet()), ("px-ground", ground_tile()),
+                     ("px-props", props_sheet()), ("px-hog", hog_sheet())):
         p = f"{OUT}/{name}.png"
         im.save(p, "PNG", optimize=True)
         print("  %-20s %dx%d  %d bytes" % (p, im.width, im.height, os.path.getsize(p)))
@@ -679,13 +684,8 @@ if __name__ == "__main__":
     pr = props_sheet().resize((32 * PROP_N * s, 24 * s), Image.NEAREST)
     prev.paste(pr, (0, CH * 4 * s), pr)
     prev.convert("RGB").save(f"{OUT}/_px-preview.png")
-    prev2 = Image.new("RGBA", (SW, SH), (0, 0, 0, 255))
-    prev2.alpha_composite(sky_layer())
-    ca, cb = clouds_far(), clouds_near()
-    for x in range(0, SW, ca.width):
-        prev2.alpha_composite(ca, (x, 26))
-    for x in range(0, SW, cb.width):
-        prev2.alpha_composite(cb, (x, 52))
-    prev2.alpha_composite(land_layer())
-    prev2.resize((SW * 3, SH * 3), Image.NEAREST).convert("RGB").save(f"{OUT}/_sky-preview.png")
-    print("  previews -> public/_px-preview.png, public/_sky-preview.png")
+    cs_ = clouds_sheet()
+    prev2 = Image.new("RGBA", (cs_.width, cs_.height), (4, 12, 46, 255))
+    prev2.alpha_composite(cs_)
+    prev2.resize((cs_.width * 5, cs_.height * 5), Image.NEAREST).convert("RGB").save(f"{OUT}/_clouds-preview.png")
+    print("  previews -> public/_px-preview.png, public/_clouds-preview.png")

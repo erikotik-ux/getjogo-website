@@ -259,12 +259,7 @@ h3 { font-size: var(--step-1); }
 }
 .hero-scene > * { position: absolute; }
 
-/* Generated 4K pixel-art backdrop, anchored so its forest meets the platform.
-   The two cloud bands sit on top of it and drift at different speeds. */
-.scene-bg, .scene-clouds {
-  image-rendering: pixelated;
-  will-change: transform;
-}
+/* Generated 4K pixel-art backdrop, anchored so its forest meets the platform. */
 .scene-bg {
   inset: 0 0 calc(var(--px-floor) - var(--px-unit) * 2) 0;
   background-color: #000132;                 /* matches the plate's top row */
@@ -272,35 +267,55 @@ h3 { font-size: var(--step-1); }
   background-size: cover;
   background-position: center bottom;
   background-repeat: no-repeat;
+  image-rendering: pixelated;
+  will-change: transform;
 }
+
+/* Seven distinct cloud sprites, each drifting at its own speed, split across
+   two depth layers that parallax differently. Tones are sampled from the
+   plate's sky so they read as part of the scene, not an overlay. */
 .scene-clouds {
+  inset: 0 0 var(--px-floor) 0;
+  overflow: hidden;
+  will-change: transform;
+}
+.cloud {
+  --ci: 0;
+  --cs: 1;
+  position: absolute;
   left: 0;
-  right: 0;
-  background-repeat: repeat-x;
+  width: calc(var(--px-unit) * 64 * var(--cs));
+  height: calc(var(--px-unit) * 26 * var(--cs));
+  background-image: url("../public/px-clouds.png");
+  background-size: calc(var(--px-unit) * 448 * var(--cs)) calc(var(--px-unit) * 26 * var(--cs));
+  background-position: calc(var(--px-unit) * -64 * var(--cs) * var(--ci)) 0;
+  background-repeat: no-repeat;
+  image-rendering: pixelated;
+  animation: cloudDrift linear infinite;
+  will-change: transform;
 }
-.scene-clouds-a {
-  bottom: calc(var(--px-floor) + var(--px-unit) * 116);
-  height: calc(var(--px-unit) * 64);
-  background-image: url("../public/px-clouds-a.png");
-  background-size: calc(var(--px-unit) * 256) calc(var(--px-unit) * 64);
-  opacity: 0.6;
-  animation: driftA 240s linear infinite;
+@keyframes cloudDrift {
+  from { transform: translate3d(-26vw, 0, 0); }
+  to   { transform: translate3d(126vw, 0, 0); }
 }
-.scene-clouds-b {
-  bottom: calc(var(--px-floor) + var(--px-unit) * 74);
-  height: calc(var(--px-unit) * 84);
-  background-image: url("../public/px-clouds-b.png");
-  background-size: calc(var(--px-unit) * 384) calc(var(--px-unit) * 84);
-  opacity: 0.78;
-  animation: driftB 150s linear infinite;
-}
-@keyframes driftA {
-  from { background-position-x: 0; }
-  to   { background-position-x: calc(var(--px-unit) * 256); }
-}
-@keyframes driftB {
-  from { background-position-x: 0; }
-  to   { background-position-x: calc(var(--px-unit) * 384); }
+/* slightly different speeds so the sky never marches in step */
+.clouds-far  .cloud:nth-child(1) { animation-duration: 245s; animation-delay: -60s; opacity: .62; }
+.clouds-far  .cloud:nth-child(2) { animation-duration: 288s; animation-delay: -220s; opacity: .55; }
+.clouds-far  .cloud:nth-child(3) { animation-duration: 268s; animation-delay: -170s; opacity: .6; }
+.clouds-far  .cloud:nth-child(4) { animation-duration: 232s; animation-delay: -20s; opacity: .66; }
+.clouds-near .cloud:nth-child(1) { animation-duration: 204s; animation-delay: -150s; opacity: .8; }
+.clouds-near .cloud:nth-child(2) { animation-duration: 186s; animation-delay: -95s; opacity: .76; }
+.clouds-near .cloud:nth-child(3) { animation-duration: 172s; animation-delay: -40s; opacity: .84; }
+
+/* A soft pool of shade behind the left column only. Wide falloff so it
+   never reads as a panel - it just calms the mountain detail under the copy. */
+.scene-scrim {
+  inset: 0;
+  background: radial-gradient(62% 68% at 24% 46%,
+    rgba(2, 6, 16, 0.54) 0%,
+    rgba(2, 6, 16, 0.40) 34%,
+    rgba(2, 6, 16, 0.19) 62%,
+    rgba(2, 6, 16, 0) 100%);
 }
 
 /* the plate already carries an emerald glow, so dial the brand wash back */
@@ -1097,7 +1112,7 @@ h3 { font-size: var(--step-1); }
   .scene-particles { display: none; }
   .hero-scene { --px-unit: 3px; }
   .scene-bg { background-image: url("../public/px-bg-sm.webp"); }
-  .scene-clouds-a { opacity: 0.5; }
+  .scene-scrim { background: radial-gradient(90% 52% at 50% 34%, rgba(2, 6, 16, 0.5), rgba(2, 6, 16, 0) 100%); }
 }
 
 @media (prefers-reduced-motion: reduce) {
