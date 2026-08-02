@@ -159,7 +159,7 @@ if (hogSprite && !window.matchMedia("(prefers-reduced-motion: reduce)").matches)
     { dur: 1750, row: 2, fps: 16, from: 0.30,  to: 0.68 },
     // look up at the card, hold, blink, twitch an ear, settle
     { dur: 3600, row: 3, fps: 0,  from: 0.68,  to: 0.68,
-      script: [0, 1, 2, 2, 2, 3, 2, 4, 2, 5, 5, 6, 5, 5, 4, 5, 7, 7] },
+      script: [0, 1, 2, 2, 2, 3, 2, 2, 4, 2, 5, 5, 6, 5, 5, 7, 7, 7] },
     { dur: 400,  row: 1, fps: 0,  from: 0.68,  to: 0.68, ramp: 6, reverse: true },
     { dur: 1500, row: 0, fps: 28, from: 0.68,  to: 1.16, ease: easeIn },
   ];

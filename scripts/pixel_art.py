@@ -26,6 +26,7 @@ PINK = (233, 170, 170, 255)
 LEG = (255, 255, 255, 255)        # near leg reads as body, not a grey stick
 LEG_FAR = (196, 208, 199, 255)    # far leg only a shade back
 FOOT = (176, 190, 180, 255)
+ARM = (241, 247, 243, 255)        # a hair off white so the near arm separates
 
 # ground
 G_LIT = (139, 219, 94, 255)
@@ -442,7 +443,35 @@ def _legs(im, phase, running=True):
             put(im, round(hip_x - 9), FEET - 2, DUST)
 
 
-def hog_stand(tilt=0.0, blink=False, ear_up=False, smile=False,
+SHOULDER = (23.0, 24.0)
+
+
+def _arm(im, phase, running=True, pose=None):
+    """One small near-side arm. Drawn after the head so a raised paw reads
+    clearly instead of disappearing behind the big head."""
+    sx, sy = SHOULDER
+    if pose == "raise":                       # paw lifted toward the card
+        ex, ey, px_, py = sx + 2.4, sy - 1.4, sx + 5.8, sy - 4.2
+    elif pose == "chest":                     # paw tucked against the chest
+        ex, ey, px_, py = sx + 2.4, sy + 0.4, sx + 4.2, sy - 2.0
+    elif running:
+        sw = math.sin(phase + 0.9)            # counter-swings the near leg
+        ex, ey = sx + 1.4 + sw * 1.6, sy + 1.8
+        px_, py = sx + 1.8 + sw * 3.0, sy + 3.4
+    else:
+        ex, ey, px_, py = sx + 1.2, sy + 2.0, sx + 1.6, sy + 3.6
+    # a generous dark pass first: white-on-white needs a real cut line
+    _limb(im, sx, sy, ex, ey, 5.8, 5.2, OUTL)
+    _limb(im, ex, ey, px_, py, 5.2, 4.6, OUTL)
+    rect(im, round(px_) - 2, round(py) - 2, round(px_) + 2, round(py) + 2, OUTL)
+    _limb(im, sx, sy, ex, ey, 4.4, 3.8, ARM)
+    _limb(im, ex, ey, px_, py, 3.8, 3.2, ARM)
+    rect(im, round(px_) - 1, round(py) - 1, round(px_) + 1, round(py) + 1, ARM)
+    _limb(im, sx, sy + 1.4, ex, ey + 1.4, 1.6, 1.4, SHD)          # underside
+    put(im, round(px_) + 1, round(py) + 1, SHD)
+
+
+def hog_stand(tilt=0.0, blink=False, ear_up=False, smile=False, arm=None,
               phase=0.0, running=False, bob=0, lean=0.0):
     im = img(CW, CH)
     bx, by = BODY_X + lean * 3, BODY_Y - bob
@@ -456,6 +485,7 @@ def hog_stand(tilt=0.0, blink=False, ear_up=False, smile=False,
     disc(im, hx, hy, HEAD_R, WHT)                                   # head mass
     _quill_set(im, hx, hy, HEAD_R, phase, gust=lean * 3.2)          # cut lines on top
     _face(im, hx, hy, tilt, blink, ear_up, smile)
+    _arm(im, phase, running, arm)                                   # in front of the head
     for x in range(int(bx - BODY_RX), int(bx + BODY_RX) + 1):       # belly shading
         for y in range(int(by), int(by + BODY_RY) + 1):
             d = ((x - bx) / BODY_RX) ** 2 + ((y - by) / BODY_RY) ** 2
@@ -533,10 +563,15 @@ def hog_sheet():
         sheet.paste(hog_stand(phase=ph, running=True, lean=0.30,
                               bob=1 if i in (1, 2, 5, 6) else 0),
                     (CW * i, CH * 2))
-    idle = [                                        # look up at the card
-        dict(tilt=0.0), dict(tilt=0.4), dict(tilt=0.8), dict(tilt=0.8, ear_up=True),
-        dict(tilt=0.8, blink=True), dict(tilt=0.8, smile=True),
-        dict(tilt=0.8, smile=True, ear_up=True), dict(tilt=0.4, smile=True),
+    idle = [                                        # arrive, notice, warm up, settle
+        dict(tilt=0.0),
+        dict(tilt=0.4, arm="chest"),
+        dict(tilt=0.8, arm="chest"),
+        dict(tilt=0.8, arm="chest", ear_up=True),
+        dict(tilt=0.8, arm="chest", blink=True),
+        dict(tilt=0.8, arm="raise", smile=True),
+        dict(tilt=0.8, arm="raise", smile=True, ear_up=True),
+        dict(tilt=0.4, arm="chest", smile=True),
     ]
     for i, kw in enumerate(idle):
         sheet.paste(hog_stand(**kw), (CW * i, CH * 3))
