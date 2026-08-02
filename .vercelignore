@@ -1,0 +1,4 @@
+# source art and build scripts - the site ships only the generated assets
+assets/masters
+scripts
+.netlify
