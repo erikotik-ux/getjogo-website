@@ -379,19 +379,22 @@ def _face(im, hx, hy, tilt=0.0, blink=False, ear_up=False, smile=False):
     ex, ey2 = hx + 2, round(hy - 2 - tilt * 1.4)   # oversized mascot eye
     if blink:
         rect(im, ex - 2, ey2 + 1, ex + 2, ey2 + 1, EYE)
-    elif smile:                                    # logo crescent: content
-        rect(im, ex - 1, ey2 - 1, ex + 1, ey2 - 1, EYE)
-        put(im, ex - 2, ey2, EYE)
-        put(im, ex + 2, ey2, EYE)
-        rect(im, ex - 1, ey2 + 1, ex + 1, ey2 + 1, EYE)
+    elif smile:                                    # cheerful upturned arc
+        for dx, dy in ((-2, 1), (-1, 0), (0, -1), (1, 0), (2, 1)):
+            put(im, ex + dx, ey2 + dy, EYE)
+            put(im, ex + dx, ey2 + dy + 1, EYE)
     else:
         rect(im, ex - 2, ey2 - 2, ex + 2, ey2 + 2, EYE)
         for dx, dy in ((-2, -2), (2, -2), (-2, 2), (2, 2)):
             put(im, ex + dx, ey2 + dy, WHT)
         rect(im, ex + 1, ey2 - 2, ex + 2, ey2 - 1, WHT)   # glint
     if smile:
-        put(im, hx + 6, round(hy + 4 - tilt * 1.4), NOSE)
-        put(im, hx + 7, round(hy + 3 - tilt * 1.6), NOSE)
+        my = round(hy + 3 - tilt * 1.5)            # upward curve on the muzzle
+        for dx, dy in ((2, 0), (3, 1), (4, 2), (5, 2), (6, 1), (7, 0)):
+            put(im, hx + dx, my + dy, EYE)
+            put(im, hx + dx, my + dy + 1, EYE)
+        cy2 = round(hy + 1 - tilt * 1.2)           # delighted blush
+        rect(im, hx - 3, cy2, hx - 2, cy2, PINK)
 
 
 def _limb(im, x0, y0, x1, y1, w0, w1, col):
@@ -569,9 +572,9 @@ def hog_sheet():
         dict(tilt=0.8, arm="chest"),
         dict(tilt=0.8, arm="chest", ear_up=True),
         dict(tilt=0.8, arm="chest", blink=True),
-        dict(tilt=0.8, arm="raise", smile=True),
-        dict(tilt=0.8, arm="raise", smile=True, ear_up=True),
-        dict(tilt=0.4, arm="chest", smile=True),
+        dict(tilt=1.0, arm="raise", smile=True),
+        dict(tilt=1.0, arm="raise", smile=True, ear_up=True),
+        dict(tilt=0.6, arm="chest", smile=True),
     ]
     for i, kw in enumerate(idle):
         sheet.paste(hog_stand(**kw), (CW * i, CH * 3))
