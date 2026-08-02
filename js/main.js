@@ -48,6 +48,7 @@ function gameCard(g) {
 function spotlight(g) {
   return `
     <div class="spot-card">
+      <span class="spot-sparkles" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span>
       <span class="spot-label">${boltIcon}Deal of the day</span>
       <div class="spot-inner">
         <img src="${COVER(g.appid)}" alt="${g.title} cover art" width="600" height="900" fetchpriority="high" decoding="async">
