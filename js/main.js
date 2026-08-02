@@ -51,16 +51,17 @@ function spotlight(g) {
       <span class="spot-sparkles" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span>
       <span class="spot-label">${boltIcon}Deal of the day</span>
       <div class="spot-inner">
-        <img src="${COVER(g.appid)}" alt="${g.title} cover art" width="600" height="900" fetchpriority="high" decoding="async">
+        <div class="spot-cover">
+          <img src="${COVER(g.appid)}" alt="${g.title} cover art" width="600" height="900" fetchpriority="high" decoding="async">
+          <div class="spot-price">
+            <span class="spot-price-top"><span class="badge-save">-${savePct(g)}%</span><s>${fmt(g.retail)}</s></span>
+            <strong>${fmt(g.price)}</strong>
+          </div>
+        </div>
         <div class="spot-meta">
           <h2 class="spot-title">${g.title}</h2>
           <p class="spot-sub">${g.genre} &middot; ${g.platform} &middot; ${starIcon}${g.score.toFixed(1)}</p>
           <p class="spot-desc">${g.desc}</p>
-          <div class="spot-price">
-            <span class="badge-save">-${savePct(g)}%</span>
-            <s>${fmt(g.retail)}</s>
-            <strong>${fmt(g.price)}</strong>
-          </div>
           <a href="#trending" class="btn btn-primary g-buy">Buy Now</a>
           <p class="spot-verified">${shieldIcon}Verified license, transfers in under a minute</p>
         </div>
