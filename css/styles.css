@@ -51,6 +51,9 @@
   --shadow-card: 0 1px 2px rgba(10, 14, 11, 0.06), 0 8px 24px rgba(10, 14, 11, 0.10);
   --shadow-card-hover: 0 2px 4px rgba(10, 14, 11, 0.08), 0 16px 40px rgba(10, 14, 11, 0.16);
 
+  /* layout */
+  --header-h: 72px;
+
   /* motion */
   --ease: cubic-bezier(0.22, 1, 0.36, 1);
   --fast: 180ms;
@@ -155,23 +158,22 @@ h3 { font-size: var(--step-1); }
   position: sticky;
   top: 0;
   z-index: 100;
-  background: linear-gradient(180deg, rgba(9, 14, 22, 0.72) 0%, rgba(9, 14, 22, 0.34) 55%, rgba(9, 14, 22, 0) 100%);
-  border-bottom: 1px solid transparent;
-  transition: background var(--med) var(--ease), border-color var(--med) var(--ease),
+  background: transparent;                   /* the hero shows straight through */
+  transition: background var(--med) var(--ease), box-shadow var(--med) var(--ease),
               backdrop-filter var(--med) var(--ease);
 }
 .site-header.is-stuck {
   background: rgba(12, 15, 13, 0.86);
   backdrop-filter: blur(14px);
   -webkit-backdrop-filter: blur(14px);
-  border-bottom-color: var(--border);
+  box-shadow: inset 0 -1px 0 var(--border);  /* hairline without changing height */
 }
 .header-inner {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: var(--space-4);
-  min-height: 72px;
+  min-height: var(--header-h);
 }
 .logo { display: inline-flex; align-items: center; }
 .logo-svg { height: 44px; width: auto; }
@@ -224,7 +226,8 @@ h3 { font-size: var(--step-1); }
 .hero {
   position: relative;
   overflow: hidden;
-  padding-block: clamp(56px, 7vw, 112px) clamp(178px, 17.5vw, 258px);
+  margin-top: calc(-1 * var(--header-h));    /* sit under the bar, no dark strip */
+  padding-block: calc(var(--header-h) + clamp(56px, 7vw, 112px)) clamp(178px, 17.5vw, 258px);
   background: linear-gradient(180deg, #070A08 0%, #0A0F0B 45%, #0C120E 100%);
 }
 .hero-glow {

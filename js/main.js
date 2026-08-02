@@ -154,7 +154,7 @@ const siteHeader = document.querySelector(".site-header");
 if (siteHeader) {
   let stuck = null;
   const sync = () => {
-    const next = window.scrollY > 24;
+    const next = window.scrollY > 16;
     if (next === stuck) return;           // only touch the DOM on a change
     stuck = next;
     siteHeader.classList.toggle("is-stuck", next);
